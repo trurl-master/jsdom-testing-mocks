@@ -1,0 +1,37 @@
+{
+  "name": "jsdom-testing-mocks",
+  "version": "1.0.0",
+  "description": "A set of tools for emulating browser behavior in jsdom environment",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest",
+    "start": "babel src --watch --out-dir dist",
+    "build": "babel src --out-dir dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trurl-master/jsdom-testing-mocks.git"
+  },
+  "keywords": [
+    "react",
+    "testing",
+    "jsdom",
+    "jest"
+  ],
+  "author": "Ivan Galiatin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/trurl-master/jsdom-testing-mocks/issues"
+  },
+  "homepage": "https://github.com/trurl-master/jsdom-testing-mocks#readme",
+  "dependencies": {
+    "css-mediaquery": "^0.1.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.7.4",
+    "@babel/core": "^7.7.4",
+    "@babel/node": "^7.7.4",
+    "@babel/preset-env": "^7.7.4",
+    "nodemon": "^2.0.1"
+  }
+}
