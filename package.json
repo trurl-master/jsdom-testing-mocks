@@ -1,8 +1,8 @@
 {
   "name": "jsdom-testing-mocks",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A set of tools for emulating browser behavior in jsdom environment",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "jest",
     "start": "babel src --watch --out-dir dist",
