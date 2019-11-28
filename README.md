@@ -35,7 +35,7 @@ it('shows the right lines on desktop and mobile', () => {
 ```
 
 ## Mock intersection observer
-Mocks intersection observer
+Provides a way of triggering intersection observer events
 
 Example, using `React Testing Library`:
 
@@ -55,3 +55,17 @@ it('loads the image when the component is in the viewport', () => {
   expect(getByAltText('alt text')).toBeInTheDocument()
 })
 ```
+
+### API
+
+`mockIntersectionObserver` returns an object, that has several useful methods:
+
+#### .enterNode(node, desc) and .leaveNode(node, desc)
+Triggers the intersection observer callback with only one node
+and `isIntersected` set to `true` (for `enterNode`) or `false` (for `leaveNode`).
+Other `IntersectionObserverEntry` params can be passed as `desc` argument
+
+#### .enterAll(desc) and .leaveAll(desc)
+Triggers the intersection observer callback for all of the observed nodes
+and `isIntersected` set to `true` (for `enterAll`) or `false` (for `leaveAll`).
+Other `IntersectionObserverEntry` params can be passed as `desc` argument
