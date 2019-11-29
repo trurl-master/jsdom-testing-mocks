@@ -8,7 +8,7 @@ npm install --save-dev jsdom-testing-mocks
 ```
 
 ## Mock viewport
-Mocks browser's `matchMedia`, allows testing of component's behavior depending on the viewport description (supports all of the [Media Features](http://www.w3.org/TR/css3-mediaqueries/#media1)). `mockViewport` must be called before rendering the component
+Mocks `matchMedia`, allows testing of component's behavior depending on the viewport description (supports all of the [Media Features](http://www.w3.org/TR/css3-mediaqueries/#media1)). `mockViewport` must be called before rendering the component
 
 Example, using `React Testing Library`:
 
