@@ -11,7 +11,6 @@ npm install --save-dev jsdom-testing-mocks
 Mocks `matchMedia`, allows testing of component's behavior depending on the viewport description (supports all of the [Media Features](http://www.w3.org/TR/css3-mediaqueries/#media1)). `mockViewport` must be called before rendering the component
 
 Example, using `React Testing Library`:
-
 ```jsx
 import { mockViewport } from 'jsdom-testing-mocks"
 
@@ -31,6 +30,23 @@ it('shows the right lines on desktop and mobile', () => {
   expect(getByText('Content visible only on desktop')).toBeInTheDocument()
 
   viewport.cleanup()
+})
+```
+
+Also, you can mock the viewport for a group of tests, using `mockViewportForTestGroup`:
+```jsx
+import { mockViewportForTestGroup } from 'jsdom-testing-mocks"
+
+describe('Desktop specific tests', () => {
+  mockViewportForTestGroup({ width: '1440px', height: '900px' })
+  
+  test('this', () = {
+    // ...
+  })
+
+  test('that', () = {
+    // ...
+  })
 })
 ```
 
