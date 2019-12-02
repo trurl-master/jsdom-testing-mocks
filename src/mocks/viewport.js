@@ -76,6 +76,8 @@ function mockViewportForTestGroup(desc) {
   afterAll(() => {
     viewport.cleanup()
   })
+
+  return viewport
 }
 
 export { mockViewport, mockViewportForTestGroup }
