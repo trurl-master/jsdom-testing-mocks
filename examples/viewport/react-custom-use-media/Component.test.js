@@ -6,22 +6,22 @@ import { mockViewport } from '../../../src/mocks/viewport'
 
 import Component from './Component'
 
-const VIEWPORT_DESKTOP = { width: "1440px", height: "900px" }
-const VIEWPORT_MOBILE = { width: "320px", height: "568px" }
+const VIEWPORT_DESKTOP = { width: '1440px', height: '900px' }
+const VIEWPORT_MOBILE = { width: '320px', height: '568px' }
 
 describe('It renders correctly on server, desktop and mobile', () => {
   it('works on the server', () => {
     const { getByText } = render(<Component />)
 
-    expect(getByText('server')).toBeInTheDocument();
+    expect(getByText('server')).toBeInTheDocument()
   })
 
   it('works on desktop', () => {
     const viewport = mockViewport(VIEWPORT_DESKTOP)
 
-    const { getByText } = render(<Component />);
+    const { getByText } = render(<Component />)
 
-    expect(getByText('desktop')).toBeInTheDocument();
+    expect(getByText('desktop')).toBeInTheDocument()
 
     viewport.cleanup()
   })
@@ -29,12 +29,12 @@ describe('It renders correctly on server, desktop and mobile', () => {
   it('works on mobile', () => {
     const viewport = mockViewport(VIEWPORT_MOBILE)
 
-    const { getByText } = render(<Component />);
+    const { getByText } = render(<Component />)
 
-    expect(getByText('not desktop')).toBeInTheDocument();
+    expect(getByText('not desktop')).toBeInTheDocument()
 
     viewport.cleanup()
-  });
+  })
 
   it('works on desktop and mobile, even if we change the viewport description', () => {
     const viewport = mockViewport(VIEWPORT_DESKTOP)

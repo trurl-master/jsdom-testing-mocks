@@ -1,11 +1,11 @@
 const defaultState = {
   nodes: [],
   nodeStates: [],
-  callback: null,
+  callback: null
 }
 
 const state = {
-  ...defaultState,
+  ...defaultState
 }
 
 function setNodeState(index, newState) {
@@ -17,10 +17,12 @@ function setNodeState(index, newState) {
 }
 
 function findNodeIndex(node) {
-  const index = state.nodes.findIndex((nodeInArray) => node.isSameNode(nodeInArray))
+  const index = state.nodes.findIndex(nodeInArray =>
+    node.isSameNode(nodeInArray)
+  )
 
   if (index === -1) {
-    console.error('IntersectionObserver mock: node not found')
+    throw new Error('IntersectionObserver mock: node not found')
   }
 
   return index
@@ -35,15 +37,14 @@ function trigger(index) {
   state.callback([state.nodeStates[index]])
 }
 
-
 function mockIntersectionObserver() {
   const savedImplementation = window.IntersectionObserver
 
-  const observe = (node) => {
+  const observe = node => {
     state.nodes.push(node)
     state.nodeStates.push({
       isIntersecting: false,
-      target: node,
+      target: node
       // time
       // rootBounds
       // intersectionRect
@@ -52,8 +53,8 @@ function mockIntersectionObserver() {
     })
   }
 
-  const unobserve = (node) => {
-    const index = state.nodes.findIndex((value) => value.isSameNode(node))
+  const unobserve = node => {
+    const index = state.nodes.findIndex(value => value.isSameNode(node))
 
     state.nodes.splice(index, 1)
     state.nodeStates.splice(index, 1)
@@ -64,13 +65,13 @@ function mockIntersectionObserver() {
     state.nodeStates = []
   }
 
-  window.IntersectionObserver = jest.fn().mockImplementation((callback) => {
+  window.IntersectionObserver = jest.fn().mockImplementation(callback => {
     state.callback = callback
 
     return {
       observe,
       unobserve,
-      disconnect,
+      disconnect
     }
   })
 
@@ -79,7 +80,7 @@ function mockIntersectionObserver() {
   })
 
   return {
-    enterAll: (desc) => {
+    enterAll: desc => {
       state.nodeStates.forEach((_, nodeStateIndex) => {
         setNodeState(nodeStateIndex, { ...desc, isIntersecting: true })
       })
@@ -93,7 +94,7 @@ function mockIntersectionObserver() {
 
       trigger(index)
     },
-    leaveAll: (desc) => {
+    leaveAll: desc => {
       state.nodeStates.forEach((_, nodeStateIndex) => {
         setNodeState(nodeStateIndex, { ...desc, isIntersecting: false })
       })
@@ -106,7 +107,7 @@ function mockIntersectionObserver() {
       setNodeState(index, { ...desc, isIntersecting: false })
 
       trigger(index)
-    },
+    }
   }
 }
 

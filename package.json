@@ -1,10 +1,11 @@
 {
   "name": "jsdom-testing-mocks",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A set of tools for emulating browser behavior in jsdom environment",
   "main": "dist/index.js",
   "scripts": {
     "test": "jest",
+    "test:coverage": "npm run test -- --coverage --no-cache",
     "start": "babel src --watch --out-dir dist",
     "build": "babel src --out-dir dist"
   },
@@ -35,8 +36,12 @@
     "@babel/preset-react": "^7.7.4",
     "babel-jest": "^24.9.0",
     "eslint": "^6.7.1",
+    "eslint-config-prettier": "^6.7.0",
     "eslint-plugin-jest": "^23.1.1",
+    "eslint-plugin-prettier": "^3.1.1",
     "eslint-plugin-react": "^7.17.0",
-    "nodemon": "^2.0.1"
+    "jest": "^24.9.0",
+    "nodemon": "^2.0.1",
+    "prettier": "^1.19.1"
   }
 }

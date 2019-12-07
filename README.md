@@ -61,12 +61,14 @@ import { mockIntersectionObserver } from 'jsdom-testing-mocks"
 const intersectionObserver = mockIntersectionObserver()
 
 it('loads the image when the component is in the viewport', () => {
-  const { getByAltText, queryByAltText, getByTestId } =  render(<TestComponent />)
+  const { getByAltText, queryByAltText, container } =  render(<TestComponent />)
 
   expect(queryByAltText('alt text')).not.toBeInTheDocument()
 
-  // when this element is in the viewport - show the image
-  intersectionObserver.enterNode(getByTestId('trigger'))
+  // when the component's root node is in the viewport - show the image
+  act(() => {
+    intersectionObserver.enterNode(container.firstChild)
+  })
 
   expect(getByAltText('alt text')).toBeInTheDocument()
 })

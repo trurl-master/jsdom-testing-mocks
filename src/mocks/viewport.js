@@ -26,22 +26,22 @@ import mediaQuery from 'css-mediaquery'
 function mockViewport(desc) {
   const state = {
     currentDesc: desc,
-    listenerHandlers: [],
+    listenerHandlers: []
   }
 
   const savedImplementation = window.matchMedia
 
-  const addListener = (handler) => {
+  const addListener = handler => {
     state.listenerHandlers.push(handler)
   }
 
-  const removeListener = (handler) => {
-    const index = state.listenerHandlers.findIndex((value) => value === handler)
+  const removeListener = handler => {
+    const index = state.listenerHandlers.findIndex(value => value === handler)
 
     state.listenerHandlers.splice(index, 1)
   }
 
-  window.matchMedia = jest.fn().mockImplementation((query) => ({
+  window.matchMedia = jest.fn().mockImplementation(query => ({
     get matches() {
       return mediaQuery.match(query, state.currentDesc)
     },
@@ -51,18 +51,18 @@ function mockViewport(desc) {
     removeListener, // deprecated
     addEventListener: addListener,
     removeEventListener: removeListener,
-    dispatchEvent: jest.fn(),
+    dispatchEvent: jest.fn()
   }))
 
   return {
     cleanup: () => {
       window.matchMedia = savedImplementation
     },
-    set: (newDesc) => {
+    set: newDesc => {
       state.currentDesc = newDesc
 
-      state.listenerHandlers.forEach((handler) => handler())
-    },
+      state.listenerHandlers.forEach(handler => handler())
+    }
   }
 }
 
