@@ -1,31 +1,27 @@
-import React, { useRef } from 'react'
-import PropTypes from 'prop-types'
-import useIntersection from './useIntersection'
+import * as React from 'react';
+import { useRef, ReactElement } from 'react';
+import useIntersection from './useIntersection';
 
-export const Section = ({ number }) => {
-  const ref = useRef(null)
-  const isIntersecting = useIntersection(ref)
+export const Section = ({ number }: { number: number }): ReactElement => {
+  const ref = useRef(null);
+  const isIntersecting = useIntersection(ref);
 
   return (
     <section
       ref={ref}
       style={{
         height: '20vh',
-        backgroundColor: isIntersecting ? 'SeaGreen' : 'IndianRed'
+        backgroundColor: isIntersecting ? 'SeaGreen' : 'IndianRed',
       }}
     >
       A section {number} -{' '}
       {isIntersecting ? 'intersecting' : 'not intersecting'}
     </section>
-  )
-}
+  );
+};
 
-Section.propTypes = {
-  number: PropTypes.number.isRequired
-}
-
-const App = () => {
-  const sections = 10
+const App = (): ReactElement => {
+  const sections = 10;
 
   return (
     <>
@@ -44,13 +40,13 @@ const App = () => {
           background: 'rgba(0,0,0,0.3)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
         }}
       >
         Intersection zone
       </div>
     </>
-  )
-}
+  );
+};
 
-export default App
+export default App;
