@@ -121,6 +121,9 @@ function mockIntersectionObserver() {
 
       trigger(index);
     },
+    cleanup: () => {
+      window.IntersectionObserver = savedImplementation;
+    },
   };
 }
 

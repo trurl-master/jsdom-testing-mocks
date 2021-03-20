@@ -86,7 +86,7 @@ it('loads the image when the component is in the viewport', () => {
 
   expect(screen.queryByAltText('alt text')).not.toBeInTheDocument();
 
-  // when the component's root node is in the viewport - show the image
+  // when the component's observed node is in the viewport - show the image
   act(() => {
     intersectionObserver.enterNode(container.firstChild);
   });
