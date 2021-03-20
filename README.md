@@ -9,6 +9,9 @@ A set of tools for emulating browser behavior in jsdom environment
 [![MIT License][license-badge]][license]
 [![Code of Conduct][coc-badge]][coc]
 
+[![GitHub Repo stars][star-badge]][star]
+[![Twitter URL][twitter-badge]][twitter]
+
 ## Installation
 
 ```sh
@@ -132,6 +135,10 @@ Other `IntersectionObserverEntry` params can be passed as `desc` argument
 [prs]: http://makeapullrequest.com
 [coc-badge]: https://img.shields.io/badge/code%20of-conduct-ff69b4.svg?style=flat-square
 [coc]: https://github.com/trurl-master/jsdom-testing-mocks/blob/master/CODE_OF_CONDUCT.md
+[star-badge]: https://img.shields.io/github/stars/trurl-master/jsdom-testing-mocks?style=social
+[star]: https://github.com/trurl-master/jsdom-testing-mocks/stargazers
+[twitter-badge]: https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Ftrurl-master%2Fjsdom-testing-mocks
+[twitter]: https://twitter.com/intent/tweet?text=Check%20out%20jsdom-testing-mocks%20by%20@ivangaliatin%20https%3A%2F%2Fgithub.com%2Ftrurl-master%2Fjsdom-testing-mocks
 
 
 <!-- prettier-ignore-end -->
