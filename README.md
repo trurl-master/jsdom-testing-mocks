@@ -2,6 +2,13 @@
 
 A set of tools for emulating browser behavior in jsdom environment
 
+[![Build status][build-status-badge]][build-status]
+[![version][version-badge]][package]
+[![PRs Welcome][prs-badge]][prs]
+[![downloads][downloads-badge]][npmtrends]
+[![MIT License][license-badge]][license]
+[![Code of Conduct][coc-badge]][coc]
+
 ## Installation
 
 ```sh
@@ -110,3 +117,21 @@ Other `IntersectionObserverEntry` params can be passed as `desc` argument
 Triggers the intersection observer callback for all of the observed nodes
 and `isIntersected` set to `true` (for `enterAll`) or `false` (for `leaveAll`).
 Other `IntersectionObserverEntry` params can be passed as `desc` argument
+
+<!-- prettier-ignore-start -->
+
+[version-badge]: https://img.shields.io/npm/v/jsdom-testing-mocks.svg?style=flat-square
+[package]: https://www.npmjs.com/package/jsdom-testing-mocks
+[downloads-badge]: https://img.shields.io/npm/dm/jsdom-testing-mocks.svg?style=flat-square
+[npmtrends]: http://www.npmtrends.com/jsdom-testing-mocks
+[license-badge]: https://img.shields.io/npm/l/jsdom-testing-mocks.svg?style=flat-square
+[license]: https://github.com/trurl-master/jsdom-testing-mocks/blob/master/LICENSE
+[build-status-badge]: https://img.shields.io/github/workflow/status/trurl-master/jsdom-testing-mocks/CI
+[build-status]: https://github.com/trurl-master/jsdom-testing-mocks/actions/workflows/main.yml
+[prs-badge]: https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square
+[prs]: http://makeapullrequest.com
+[coc-badge]: https://img.shields.io/badge/code%20of-conduct-ff69b4.svg?style=flat-square
+[coc]: https://github.com/trurl-master/jsdom-testing-mocks/blob/master/CODE_OF_CONDUCT.md
+
+
+<!-- prettier-ignore-end -->
