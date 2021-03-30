@@ -43,7 +43,7 @@ it('shows the right lines on desktop and mobile', () => {
   ).toBeInTheDocument();
 
   expect(
-    screen.queryByText('Content visible only on small screens')
+    screen.queryByText('Content visible only on large screens')
   ).not.toBeInTheDocument();
 
   act(() => {
@@ -55,7 +55,7 @@ it('shows the right lines on desktop and mobile', () => {
   ).not.toBeInTheDocument();
 
   expect(
-    screen.getByText('Content visible only on small screens')
+    screen.getByText('Content visible only on large screens')
   ).toBeInTheDocument();
 
   viewport.cleanup();
