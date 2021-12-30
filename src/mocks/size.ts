@@ -40,7 +40,5 @@ export const mockElementBoundingClientRect = (
     toJSON: () => JSON.stringify(boundingClientRect),
   }));
 
-  afterEach(() => {
-    element.getBoundingClientRect = savedImplementation;
-  });
+  return savedImplementation;
 };
