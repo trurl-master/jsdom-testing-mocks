@@ -80,7 +80,7 @@ describe('Desktop specific tests', () => {
 })
 ```
 
-## Mock intersection observer
+## Mock IntersectionObserver
 
 Provides a way of triggering intersection observer events
 
@@ -120,6 +120,81 @@ Other `IntersectionObserverEntry` params can be passed as `desc` argument
 Triggers the intersection observer callback for all of the observed nodes
 and `isIntersected` set to `true` (for `enterAll`) or `false` (for `leaveAll`).
 Other `IntersectionObserverEntry` params can be passed as `desc` argument
+
+## Mock ResizeObserver
+
+Provides a way of triggering resize observer events. It's up to you to mock elements' sizes. If your component uses `contentRect` provided by the callback, you must mock element's `getBoundingClientRect` (for exemple using a helper function `mockElementBoundingClientRect` provided by the lib)
+
+_Currently the mock doesn't take into account multi-column layouts, so `borderBoxSize` and `contentBoxSize` will contain only one full-sized item_
+
+Example, using `React Testing Library`:
+
+```jsx
+import {
+  mockResizeObserver,
+  mockElementBoundingClientRect,
+} from 'jsdom-testing-mocks';
+
+const DivWithSize = () => {
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new ResizeObserver(entries => {
+      setSize({
+        width: entries[0].contentRect.width,
+        height: entries[0].contentRect.height,
+      });
+    });
+
+    observer.observe(ref.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  return (
+    <div data-testid="theDiv" ref={ref}>
+      {size.width} x {size.height}
+    </div>
+  );
+};
+
+const resizeObserver = mockResizeObserver();
+
+it('prints the size of the div', () => {
+  render(<DivWithSize />);
+
+  const theDiv = screen.getByTestId('theDiv');
+
+  expect(screen.getByText('0 x 0')).toBeInTheDocument();
+
+  mockElementBoundingClientRect(theDiv, { width: 300, height: 200 });
+
+  act(() => {
+    resizeObserver.resize(theDiv);
+  });
+
+  expect(screen.getByText('300 x 200')).toBeInTheDocument();
+
+  mockElementBoundingClientRect(theDiv, { width: 200, height: 500 });
+
+  act(() => {
+    resizeObserver.resize(theDiv);
+  });
+
+  expect(screen.getByText('200 x 500')).toBeInTheDocument();
+});
+```
+
+### API
+
+`mockResizeObserver` returns an object, that has one method:
+
+#### .resize(elements: HTMLElement | HTMLElement[])
+
+Triggers all resize observer callbacks for all observers that observe the passed elements
 
 <!-- prettier-ignore-start -->
 
