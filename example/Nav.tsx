@@ -13,6 +13,14 @@ const Nav = (): React.ReactElement => (
       <li style={{ marginRight: '2em' }}>
         <Link to="/intersection-observer">Intersection Observer</Link>
       </li>
+      <li style={{ marginRight: '2em' }}>
+        <Link to="/resize-observer/do-i-fit">Resize Observer: do I fit?</Link>
+      </li>
+      <li style={{ marginRight: '2em' }}>
+        <Link to="/resize-observer/print-my-size">
+          Resize Observer: print my size
+        </Link>
+      </li>
       <li>
         <Link to="/viewport">Viewport</Link>
       </li>

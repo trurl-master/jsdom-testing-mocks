@@ -1,6 +1,6 @@
 {
   "name": "jsdom-testing-mocks",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "author": "Ivan Galiatin",
   "license": "MIT",
   "description": "A set of tools for emulating browser behavior in jsdom environment",
@@ -21,7 +21,7 @@
     "src"
   ],
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "scripts": {
     "start": "tsdx watch",
@@ -62,14 +62,15 @@
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^4.10.1",
-    "@testing-library/dom": "^7.30.0",
-    "@testing-library/jest-dom": "^5.11.9",
-    "@testing-library/react": "^11.2.5",
-    "@testing-library/user-event": "^13.0.2",
+    "@testing-library/dom": "^8.11.1",
+    "@testing-library/jest-dom": "^5.16.1",
+    "@testing-library/react": "^12.1.2",
+    "@testing-library/user-event": "^13.5.0",
     "@types/css-mediaquery": "^0.1.0",
+    "@types/jest": "^27.0.3",
     "@types/react": "^17.0.3",
     "@types/react-dom": "^17.0.2",
-    "@types/testing-library__jest-dom": "^5.9.5",
+    "@types/testing-library__jest-dom": "^5.14.2",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
     "@typescript-eslint/parser": "^4.18.0",
     "babel-eslint": "^10.1.0",

@@ -1,9 +1,9 @@
-export type IntersectionDescription = {
+type IntersectionDescription = {
   isIntersecting: boolean;
   target?: HTMLElement;
 };
 
-export type State = {
+type State = {
   nodes: HTMLElement[];
   nodeStates: IntersectionDescription[];
   callback: (
