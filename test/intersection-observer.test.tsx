@@ -204,7 +204,7 @@ describe('Section is intersecting', () => {
     ]);
   });
 
-  fit('should receive intersection options to the callback', () => {
+  it('should receive intersection options to the callback', () => {
     const cb = jest.fn();
     const options: IntersectionDescription = {
       intersectionRatio: 1,
@@ -224,7 +224,7 @@ describe('Section is intersecting', () => {
       intersectionObserver.enterNode(screen.getByText(/A section 1/), options);
     });
 
-    const [entries, observer] = cb.mock.calls[0];
+    const [entries, _observer] = cb.mock.calls[0];
 
     expect(cb).toHaveBeenCalledTimes(1);
     expect(entries).toHaveLength(1); // Number of entries
