@@ -2,9 +2,15 @@ import * as React from 'react';
 import { useRef, ReactElement } from 'react';
 import useIntersection from './useIntersection';
 
-export const Section = ({ number }: { number: number }): ReactElement => {
+export const Section = ({
+  number,
+  callback,
+}: {
+  number: number;
+  callback?: IntersectionObserverCallback;
+}): ReactElement => {
   const ref = useRef(null);
-  const isIntersecting = useIntersection(ref);
+  const isIntersecting = useIntersection(ref, callback);
 
   return (
     <section

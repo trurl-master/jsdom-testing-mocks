@@ -25,7 +25,10 @@ function createObserver() {
   );
 }
 
-const useIntersection = (ref: MutableRefObject<HTMLElement | null>) => {
+const useIntersection = (
+  ref: MutableRefObject<HTMLElement | null>,
+  callback?: IntersectionObserverCallback
+) => {
   const [isIntersecting, setIsIntersecting] = useState(false);
 
   useEffect(() => {
@@ -39,6 +42,7 @@ const useIntersection = (ref: MutableRefObject<HTMLElement | null>) => {
 
     entryCallbacks[domId.toString()] = entry => {
       setIsIntersecting(entry.isIntersecting);
+      callback?.([entry], observer);
     };
 
     node.dataset._ioid = domId.toString();

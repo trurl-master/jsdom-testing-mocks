@@ -2,7 +2,10 @@ import * as React from 'react';
 import { render, act, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 
-import { mockIntersectionObserver } from '../src/mocks/intersection-observer';
+import {
+  mockIntersectionObserver,
+  IntersectionDescription,
+} from '../src/mocks/intersection-observer';
 
 import App, {
   Section,
@@ -199,5 +202,38 @@ describe('Section is intersecting', () => {
       'A section 8 - not intersecting',
       'A section 9 - not intersecting',
     ]);
+  });
+
+  fit('should receive intersection options to the callback', () => {
+    const cb = jest.fn();
+    const options: IntersectionDescription = {
+      intersectionRatio: 1,
+      rootBounds: {
+        x: 0,
+        y: 0,
+        height: 100,
+        width: 100,
+      },
+    };
+
+    render(<Section number={1} callback={cb} />);
+
+    expect(cb).not.toHaveBeenCalled();
+
+    act(() => {
+      intersectionObserver.enterNode(screen.getByText(/A section 1/), options);
+    });
+
+    const [entries, observer] = cb.mock.calls[0];
+
+    expect(cb).toHaveBeenCalledTimes(1);
+    expect(entries).toHaveLength(1); // Number of entries
+    expect(entries[0]).toEqual(
+      expect.objectContaining({
+        ...options,
+        isIntersecting: true,
+      })
+    );
+    expect(entries[0].target instanceof HTMLElement).toBe(true);
   });
 });
