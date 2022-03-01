@@ -1,6 +1,10 @@
-type IntersectionDescription = {
-  isIntersecting: boolean;
-  target?: HTMLElement;
+import { Mutable, PartialDeep } from 'type-fest';
+
+export type IntersectionDescription = Omit<
+  PartialDeep<Mutable<IntersectionObserverEntry>>,
+  'target'
+> & {
+  target?: Element;
 };
 
 type State = {
