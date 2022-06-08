@@ -89,8 +89,16 @@ Example, using `React Testing Library`:
 ```jsx
 import { mockIntersectionObserver } from 'jsdom-testing-mocks';
 
-const intersectionObserver = mockIntersectionObserver();
+const io = mockIntersectionObserver();
 
+/*
+Assuming html:
+<div data-testid="container">
+  <img src="..." alt="alt text" />
+</div>
+
+And an IntersectionObserver, observing the container
+*/
 it('loads the image when the component is in the viewport', () => {
   const { container } = render(<TestComponent />);
 
@@ -98,7 +106,7 @@ it('loads the image when the component is in the viewport', () => {
 
   // when the component's observed node is in the viewport - show the image
   act(() => {
-    intersectionObserver.enterNode(container.firstChild);
+    io.enterNode(screen.getByTestId('container'));
   });
 
   expect(screen.getByAltText('alt text')).toBeInTheDocument();
@@ -109,17 +117,40 @@ it('loads the image when the component is in the viewport', () => {
 
 `mockIntersectionObserver` returns an object, that has several useful methods:
 
-#### .enterNode(node, desc) and .leaveNode(node, desc)
+#### .enterNode(node, desc)
 
-Triggers the intersection observer callback with only one node
-and `isIntersected` set to `true` (for `enterNode`) or `false` (for `leaveNode`).
-Other `IntersectionObserverEntry` params can be passed as `desc` argument
+Triggers all IntersectionObservers observing the `node`, with `isIntersected` set to `true` and `intersectionRatio` set to `1`. Other `IntersectionObserverEntry` params can be passed as `desc` argument, you can override any parameter except `isIntersected`
+
+#### .leaveNode(node, desc)
+
+Triggers all IntersectionObservers observing the `node`, with `isIntersected` set to `false` and `intersectionRatio` set to `0`. Other `IntersectionObserverEntry` params can be passed as `desc` argument, you can override any parameter except `isIntersected`
+
+#### .enterNodes(nodeDescriptions)
+
+Triggers all IntersectionObservers observing the nodes in `nodeDescriptions` with multiple nodes entering at once. Each IntersectionObserver callback will receive only the nodes it's observing:
+
+```js
+io.enterNodes([
+  // you can pass multiple nodes each with its own state
+  { node: screen.getByText('First Node'), desc: { intersectionRatio: 0.5 } },
+  // description is optional:
+  { node: screen.getByText('Second Node') },
+  // or you can use a shorthand:
+  screen.getByText('Third Node'),
+]);
+```
+
+#### .leaveNodes(nodeDescriptions)
+
+Triggers all IntersectionObservers observing the nodes in `nodeDescriptions` with multiple nodes leaving at once. Each IntersectionObserver callback will receive only the nodes it's observing.
+
+#### .triggerNodes(nodeDescriptions)
+
+Triggers all IntersectionObservers observing the nodes in `nodeDescriptions` with multiple nodes at once with custom descriptions (`isIntersected` is not enforced). Each IntersectionObserver callback will receive only the nodes it's observing
 
 #### .enterAll(desc) and .leaveAll(desc)
 
-Triggers the intersection observer callback for all of the observed nodes
-and `isIntersected` set to `true` (for `enterAll`) or `false` (for `leaveAll`).
-Other `IntersectionObserverEntry` params can be passed as `desc` argument
+Triggers all IntersectionObservers for each of the observed nodes
 
 ## Mock ResizeObserver
 

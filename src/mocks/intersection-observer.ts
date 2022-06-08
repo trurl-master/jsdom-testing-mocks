@@ -1,4 +1,5 @@
 import { Mutable, PartialDeep } from 'type-fest';
+import './DOMRect';
 
 export type IntersectionDescription = Omit<
   PartialDeep<Mutable<IntersectionObserverEntry>>,
@@ -7,36 +8,79 @@ export type IntersectionDescription = Omit<
   target?: Element;
 };
 
+export type NodeIntersectionDescription = {
+  node: HTMLElement;
+  desc?: IntersectionDescription;
+};
+
 type State = {
-  nodes: HTMLElement[];
-  nodeStates: IntersectionDescription[];
-  callback: (
-    entries: IntersectionDescription[] | [IntersectionDescription]
-  ) => void;
+  observers: MockedIntersectionObserver[];
 };
 
 const defaultState: State = {
-  nodes: [],
-  nodeStates: [],
-  callback: () => {},
+  observers: [],
 };
 
-const state = {
-  ...defaultState,
-};
+const state = { ...defaultState };
 
-function setNodeState(index: number, newState: IntersectionDescription) {
-  if (newState.target) {
-    delete newState.target;
-  }
-
-  Object.assign(state.nodeStates[index], newState);
+function isElement(tested: any): tested is HTMLElement {
+  return typeof HTMLElement === 'object'
+    ? tested instanceof HTMLElement //DOM2
+    : tested &&
+        typeof tested === 'object' &&
+        tested !== null &&
+        tested.nodeType === 1 &&
+        typeof tested.nodeName === 'string';
 }
 
-function findNodeIndex(node: HTMLElement) {
-  const index = state.nodes.findIndex(nodeInArray =>
-    node.isSameNode(nodeInArray)
-  );
+function getObserversByNode(node: HTMLElement) {
+  return state.observers.filter(observer => observer.nodes.includes(node));
+}
+
+function normalizeNodeDescriptions(
+  nodeDescriptions: (NodeIntersectionDescription | HTMLElement)[]
+): NodeIntersectionDescription[] {
+  return nodeDescriptions.map(nodeDesc => {
+    if (isElement(nodeDesc)) {
+      return { node: nodeDesc };
+    }
+
+    return nodeDesc;
+  });
+}
+
+function getNodeDescriptionsByObserver(
+  nodeDescriptions: NodeIntersectionDescription[]
+) {
+  const observerNodes: {
+    observer: MockedIntersectionObserver;
+    nodeDescriptions: NodeIntersectionDescription[];
+  }[] = [];
+
+  nodeDescriptions.forEach(({ node, desc }) => {
+    const observers = getObserversByNode(node);
+
+    observers.forEach(observer => {
+      const observerNode = observerNodes.find(
+        ({ observer: obs }) => obs === observer
+      );
+
+      if (observerNode) {
+        observerNode.nodeDescriptions.push({ node, desc });
+      } else {
+        observerNodes.push({
+          observer,
+          nodeDescriptions: [{ node, desc }],
+        });
+      }
+    });
+  });
+
+  return observerNodes;
+}
+
+function findNodeIndex(nodes: HTMLElement[], node: HTMLElement) {
+  const index = nodes.findIndex(nodeInArray => node.isSameNode(nodeInArray));
 
   if (index === -1) {
     throw new Error('IntersectionObserver mock: node not found');
@@ -45,51 +89,112 @@ function findNodeIndex(node: HTMLElement) {
   return index;
 }
 
-function trigger(index?: number) {
-  if (typeof index === 'undefined') {
-    state.callback(state.nodeStates);
-    return;
+export class MockedIntersectionObserver implements IntersectionObserver {
+  nodes: HTMLElement[] = [];
+  nodeStates: IntersectionObserverEntry[] = [];
+  callback: IntersectionObserverCallback;
+  readonly root: Element | Document | null = null;
+  readonly rootMargin: string = '0px 0px 0px 0px';
+  readonly thresholds: ReadonlyArray<number> = [0];
+  timeOrigin: number = 0;
+
+  constructor(
+    callback: IntersectionObserverCallback,
+    options?: IntersectionObserverInit | undefined
+  ) {
+    this.callback = callback;
+
+    if (options) {
+      if (typeof options.root !== 'undefined') {
+        this.root = options.root;
+      }
+
+      if (typeof options.rootMargin !== 'undefined') {
+        this.rootMargin = options.rootMargin;
+      }
+
+      if (typeof options.threshold !== 'undefined') {
+        this.thresholds = Array.isArray(options.threshold)
+          ? options.threshold
+          : [options.threshold];
+      }
+    }
+
+    this.timeOrigin = performance.now();
+
+    state.observers.push(this);
   }
 
-  state.callback([state.nodeStates[index]]);
+  observe(node: HTMLElement) {
+    this.nodes.push(node);
+    this.nodeStates.push({
+      isIntersecting: false,
+      target: node,
+      time: performance.now() - this.timeOrigin,
+      rootBounds: new DOMRectReadOnly(),
+      intersectionRect: new DOMRectReadOnly(),
+      intersectionRatio: 0,
+      boundingClientRect: new DOMRectReadOnly(),
+    });
+  }
+
+  unobserve(node: HTMLElement) {
+    const index = this.nodes.findIndex(value => value.isSameNode(node));
+
+    this.nodes.splice(index, 1);
+    this.nodeStates.splice(index, 1);
+  }
+
+  disconnect() {
+    this.nodes = [];
+    this.nodeStates = [];
+  }
+
+  triggerNode(node: HTMLElement, desc: IntersectionDescription) {
+    const index = findNodeIndex(this.nodes, node);
+    const nodeState = this.nodeStates[index];
+
+    this.nodeStates[index] = {
+      ...nodeState,
+      time: performance.now() - this.timeOrigin,
+      ...desc,
+    } as IntersectionObserverEntry;
+
+    this.callback([this.nodeStates[index]], this);
+  }
+
+  triggerNodes(nodeDescriptions: NodeIntersectionDescription[]) {
+    const nodeIndexes = nodeDescriptions.map(({ node }) =>
+      findNodeIndex(this.nodes, node)
+    );
+
+    const nodeStates = nodeDescriptions.map(({ desc }, index) => {
+      const newState = {
+        ...this.nodeStates[nodeIndexes[index]],
+        time: performance.now() - this.timeOrigin,
+        ...desc,
+      } as IntersectionObserverEntry;
+
+      this.nodeStates[nodeIndexes[index]] = newState;
+
+      return newState;
+    });
+
+    this.callback(nodeStates, this);
+  }
+
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
 }
 
 function mockIntersectionObserver() {
   const savedImplementation = window.IntersectionObserver;
 
-  const observe = (node: HTMLElement) => {
-    state.nodes.push(node);
-    state.nodeStates.push({
-      isIntersecting: false,
-      target: node,
-      // time
-      // rootBounds
-      // intersectionRect
-      // intersectionRatio
-      // boundingClientRect
-    });
-  };
-
-  const unobserve = (node: HTMLElement) => {
-    const index = state.nodes.findIndex(value => value.isSameNode(node));
-
-    state.nodes.splice(index, 1);
-    state.nodeStates.splice(index, 1);
-  };
-
-  const disconnect = () => {
-    state.nodes = [];
-    state.nodeStates = [];
-  };
-
-  window.IntersectionObserver = jest.fn().mockImplementation(callback => {
-    state.callback = callback;
-
-    return {
-      observe,
-      unobserve,
-      disconnect,
-    };
+  Object.defineProperty(window, 'IntersectionObserver', {
+    writable: true,
+    configurable: true,
+    value: MockedIntersectionObserver,
   });
 
   afterAll(() => {
@@ -98,35 +203,113 @@ function mockIntersectionObserver() {
 
   return {
     enterAll: (desc?: IntersectionDescription) => {
-      state.nodeStates.forEach((_, nodeStateIndex) => {
-        setNodeState(nodeStateIndex, { ...desc, isIntersecting: true });
-      });
+      state.observers.forEach(observer => {
+        const nodeDescriptions = observer.nodes.map(node => ({
+          node,
+          desc: {
+            intersectionRatio: 1,
+            ...desc,
+            isIntersecting: true,
+          },
+        }));
 
-      trigger();
+        observer.triggerNodes(nodeDescriptions);
+      });
     },
     enterNode: (node: HTMLElement, desc?: IntersectionDescription) => {
-      const index = findNodeIndex(node);
+      const observers = getObserversByNode(node);
 
-      setNodeState(index, { ...desc, isIntersecting: true });
+      observers.forEach(observer => {
+        observer.triggerNode(node, {
+          intersectionRatio: 1,
+          ...desc,
+          isIntersecting: true,
+        });
+      });
+    },
+    enterNodes: (
+      nodeDescriptions: (NodeIntersectionDescription | HTMLElement)[]
+    ) => {
+      const normalizedNodeDescriptions = normalizeNodeDescriptions(
+        nodeDescriptions
+      );
+      const observerNodes = getNodeDescriptionsByObserver(
+        normalizedNodeDescriptions
+      );
 
-      trigger(index);
+      observerNodes.forEach(({ observer, nodeDescriptions }) => {
+        observer.triggerNodes(
+          nodeDescriptions.map(({ node, desc }) => ({
+            node,
+            desc: { intersectionRatio: 1, ...desc, isIntersecting: true },
+          }))
+        );
+      });
     },
     leaveAll: (desc?: IntersectionDescription) => {
-      state.nodeStates.forEach((_, nodeStateIndex) => {
-        setNodeState(nodeStateIndex, { ...desc, isIntersecting: false });
-      });
+      state.observers.forEach(observer => {
+        const nodeDescriptions = observer.nodes.map(node => ({
+          node,
+          desc: {
+            intersectionRatio: 0,
+            ...desc,
+            isIntersecting: false,
+          },
+        }));
 
-      trigger();
+        observer.triggerNodes(nodeDescriptions);
+      });
     },
     leaveNode: (node: HTMLElement, desc?: IntersectionDescription) => {
-      const index = findNodeIndex(node);
+      const observers = getObserversByNode(node);
 
-      setNodeState(index, { ...desc, isIntersecting: false });
+      observers.forEach(observer => {
+        observer.triggerNode(node, {
+          intersectionRatio: 0,
+          ...desc,
+          isIntersecting: false,
+        });
+      });
+    },
+    triggerNodes: (
+      nodeDescriptions: (NodeIntersectionDescription | HTMLElement)[]
+    ) => {
+      const normalizedNodeDescriptions = normalizeNodeDescriptions(
+        nodeDescriptions
+      );
 
-      trigger(index);
+      const observerNodes = getNodeDescriptionsByObserver(
+        normalizedNodeDescriptions
+      );
+
+      observerNodes.forEach(({ observer, nodeDescriptions }) => {
+        observer.triggerNodes(nodeDescriptions);
+      });
+    },
+    leaveNodes: (
+      nodeDescriptions: (NodeIntersectionDescription | HTMLElement)[]
+    ) => {
+      const normalizedNodeDescriptions = normalizeNodeDescriptions(
+        nodeDescriptions
+      );
+
+      const observerNodes = getNodeDescriptionsByObserver(
+        normalizedNodeDescriptions
+      );
+
+      observerNodes.forEach(({ observer, nodeDescriptions }) => {
+        observer.triggerNodes(
+          nodeDescriptions.map(({ node, desc }) => ({
+            node,
+            desc: { intersectionRatio: 0, ...desc, isIntersecting: false },
+          }))
+        );
+      });
     },
     cleanup: () => {
       window.IntersectionObserver = savedImplementation;
+
+      state.observers = [];
     },
   };
 }

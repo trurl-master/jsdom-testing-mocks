@@ -26,7 +26,7 @@ export const Section = ({
   );
 };
 
-const App = (): ReactElement => {
+const App = () => {
   const sections = 10;
 
   return (
