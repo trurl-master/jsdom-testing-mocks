@@ -5,16 +5,17 @@ import '@testing-library/jest-dom/extend-expect';
 import {
   mockIntersectionObserver,
   IntersectionDescription,
+  MockedIntersectionObserver,
 } from '../src/mocks/intersection-observer';
 
 import App, {
   Section,
 } from '../example/intersection-observer/global-observer/GlobalObserver';
 
-const intersectionObserver = mockIntersectionObserver();
+const io = mockIntersectionObserver();
 
 describe('Section is intersecting', () => {
-  it('should render correctly when not inside the intersection zone', () => {
+  it('should render the initial state correctly', () => {
     render(<Section number={1} />);
 
     expect(
@@ -22,39 +23,91 @@ describe('Section is intersecting', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render correctly when entering the intersection zone', () => {
-    const { container } = render(<Section number={1} />);
+  it('should work correctly when entering and leaving an intersection zone', () => {
+    const cb = jest.fn();
+    render(<Section number={1} callback={cb} />);
 
     act(() => {
-      intersectionObserver.enterNode(container.firstChild as HTMLElement);
+      io.enterNode(screen.getByText('A section 1 - not intersecting'));
     });
 
     expect(screen.getByText('A section 1 - intersecting')).toBeInTheDocument();
-  });
+    const [entries1, observer1] = cb.mock.calls[0];
 
-  it('should render correctly when leaving the intersection zone', () => {
-    const { container } = render(<Section number={1} />);
+    expect(cb).toHaveBeenCalledTimes(1);
+    expect(entries1).toHaveLength(1);
+    expect(entries1[0]).toEqual(
+      expect.objectContaining({
+        intersectionRatio: 1,
+        isIntersecting: true,
+      })
+    );
+    expect(entries1[0].target).toBe(
+      screen.getByText('A section 1 - intersecting')
+    );
+    expect(observer1).toBeInstanceOf(MockedIntersectionObserver);
 
     act(() => {
-      intersectionObserver.enterNode(container.firstChild as HTMLElement);
-    });
-
-    expect(screen.getByText('A section 1 - intersecting')).toBeInTheDocument();
-
-    act(() => {
-      intersectionObserver.leaveNode(container.firstChild as HTMLElement);
+      io.leaveNode(screen.getByText('A section 1 - intersecting'));
     });
 
     expect(
       screen.getByText('A section 1 - not intersecting')
     ).toBeInTheDocument();
+
+    const [entries2, observer2] = cb.mock.calls[1];
+    expect(cb).toHaveBeenCalledTimes(2);
+    expect(entries2).toHaveLength(1); // Number of entries
+    expect(entries2[0]).toEqual(
+      expect.objectContaining({
+        intersectionRatio: 0,
+        isIntersecting: false,
+      })
+    );
+    expect(observer2).toBeInstanceOf(MockedIntersectionObserver);
+  });
+
+  it('should not override isIntersected, but allow overriding other params', () => {
+    const cb = jest.fn();
+    render(<Section number={1} callback={cb} />);
+
+    act(() => {
+      io.enterNode(screen.getByText('A section 1 - not intersecting'), {
+        isIntersecting: false,
+        intersectionRatio: 0.5,
+      });
+    });
+
+    const [entries1] = cb.mock.calls[0];
+
+    expect(entries1[0]).toEqual(
+      expect.objectContaining({
+        intersectionRatio: 0.5,
+        isIntersecting: true,
+      })
+    );
+
+    act(() => {
+      io.leaveNode(screen.getByText('A section 1 - intersecting'), {
+        isIntersecting: true,
+        intersectionRatio: 0.5,
+      });
+    });
+
+    const [entries2] = cb.mock.calls[1];
+    expect(entries2[0]).toEqual(
+      expect.objectContaining({
+        intersectionRatio: 0.5,
+        isIntersecting: false,
+      })
+    );
   });
 
   it('should enter all nodes at once', () => {
     render(<App />);
 
     act(() => {
-      intersectionObserver.enterAll();
+      io.enterAll();
     });
 
     expect(
@@ -77,7 +130,7 @@ describe('Section is intersecting', () => {
     render(<App />);
 
     act(() => {
-      intersectionObserver.enterAll();
+      io.enterAll();
     });
 
     expect(
@@ -96,7 +149,7 @@ describe('Section is intersecting', () => {
     ]);
 
     act(() => {
-      intersectionObserver.leaveAll();
+      io.leaveAll();
     });
 
     expect(
@@ -119,9 +172,7 @@ describe('Section is intersecting', () => {
     render(<App />);
 
     act(() => {
-      intersectionObserver.enterNode(
-        screen.getByText('A section 4 - not intersecting')
-      );
+      io.enterNode(screen.getByText('A section 4 - not intersecting'));
     });
 
     expect(
@@ -140,12 +191,8 @@ describe('Section is intersecting', () => {
     ]);
 
     act(() => {
-      intersectionObserver.enterNode(
-        screen.getByText('A section 7 - not intersecting')
-      );
-      intersectionObserver.enterNode(
-        screen.getByText('A section 8 - not intersecting')
-      );
+      io.enterNode(screen.getByText('A section 7 - not intersecting'));
+      io.enterNode(screen.getByText('A section 8 - not intersecting'));
     });
 
     expect(
@@ -164,9 +211,7 @@ describe('Section is intersecting', () => {
     ]);
 
     act(() => {
-      intersectionObserver.leaveNode(
-        screen.getByText('A section 4 - intersecting')
-      );
+      io.leaveNode(screen.getByText('A section 4 - intersecting'));
     });
 
     expect(
@@ -185,7 +230,110 @@ describe('Section is intersecting', () => {
     ]);
 
     act(() => {
-      intersectionObserver.leaveAll();
+      io.leaveAll();
+    });
+
+    expect(
+      screen.getAllByText(/A section/).map(node => node.textContent)
+    ).toEqual([
+      'A section 0 - not intersecting',
+      'A section 1 - not intersecting',
+      'A section 2 - not intersecting',
+      'A section 3 - not intersecting',
+      'A section 4 - not intersecting',
+      'A section 5 - not intersecting',
+      'A section 6 - not intersecting',
+      'A section 7 - not intersecting',
+      'A section 8 - not intersecting',
+      'A section 9 - not intersecting',
+    ]);
+  });
+
+  it('should enter, leave and trigger multiple nodes', () => {
+    render(<App />);
+
+    act(() => {
+      io.enterNodes([
+        { node: screen.getByText('A section 4 - not intersecting') },
+        { node: screen.getByText('A section 5 - not intersecting') },
+      ]);
+    });
+
+    expect(
+      screen.getAllByText(/A section/).map(node => node.textContent)
+    ).toEqual([
+      'A section 0 - not intersecting',
+      'A section 1 - not intersecting',
+      'A section 2 - not intersecting',
+      'A section 3 - not intersecting',
+      'A section 4 - intersecting',
+      'A section 5 - intersecting',
+      'A section 6 - not intersecting',
+      'A section 7 - not intersecting',
+      'A section 8 - not intersecting',
+      'A section 9 - not intersecting',
+    ]);
+
+    act(() => {
+      io.enterNodes([
+        screen.getByText('A section 7 - not intersecting'),
+        screen.getByText('A section 8 - not intersecting'),
+      ]);
+    });
+
+    expect(
+      screen.getAllByText(/A section/).map(node => node.textContent)
+    ).toEqual([
+      'A section 0 - not intersecting',
+      'A section 1 - not intersecting',
+      'A section 2 - not intersecting',
+      'A section 3 - not intersecting',
+      'A section 4 - intersecting',
+      'A section 5 - intersecting',
+      'A section 6 - not intersecting',
+      'A section 7 - intersecting',
+      'A section 8 - intersecting',
+      'A section 9 - not intersecting',
+    ]);
+
+    act(() => {
+      io.triggerNodes([
+        {
+          node: screen.getByText('A section 4 - intersecting'),
+          desc: { isIntersecting: false },
+        },
+        {
+          node: screen.getByText('A section 5 - intersecting'),
+          desc: { isIntersecting: false },
+        },
+        {
+          node: screen.getByText('A section 6 - not intersecting'),
+          desc: { isIntersecting: true },
+        },
+      ]);
+    });
+
+    expect(
+      screen.getAllByText(/A section/).map(node => node.textContent)
+    ).toEqual([
+      'A section 0 - not intersecting',
+      'A section 1 - not intersecting',
+      'A section 2 - not intersecting',
+      'A section 3 - not intersecting',
+      'A section 4 - not intersecting',
+      'A section 5 - not intersecting',
+      'A section 6 - intersecting',
+      'A section 7 - intersecting',
+      'A section 8 - intersecting',
+      'A section 9 - not intersecting',
+    ]);
+
+    act(() => {
+      io.leaveNodes([
+        { node: screen.getByText('A section 6 - intersecting') },
+        screen.getByText('A section 7 - intersecting'),
+        { node: screen.getByText('A section 8 - intersecting') },
+      ]);
     });
 
     expect(
@@ -221,10 +369,10 @@ describe('Section is intersecting', () => {
     expect(cb).not.toHaveBeenCalled();
 
     act(() => {
-      intersectionObserver.enterNode(screen.getByText(/A section 1/), options);
+      io.enterNode(screen.getByText(/A section 1/), options);
     });
 
-    const [entries, _observer] = cb.mock.calls[0];
+    const [entries] = cb.mock.calls[0];
 
     expect(cb).toHaveBeenCalledTimes(1);
     expect(entries).toHaveLength(1); // Number of entries
@@ -234,6 +382,6 @@ describe('Section is intersecting', () => {
         isIntersecting: true,
       })
     );
-    expect(entries[0].target instanceof HTMLElement).toBe(true);
+    expect(entries[0].target).toBe(screen.getByText(/A section 1/));
   });
 });
