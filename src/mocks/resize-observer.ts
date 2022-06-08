@@ -8,7 +8,7 @@ const state: State = {
   nodeObservers: new Map(),
 };
 
-class MockedResizeObserver {
+class MockedResizeObserver implements ResizeObserver {
   nodes: HTMLElement[] = [];
   callback: ResizeObserverCallback;
 
@@ -64,9 +64,12 @@ class MockedResizeObserver {
   };
 }
 
-function elementToEntry(element: HTMLElement) {
+function elementToEntry(element: HTMLElement): ResizeObserverEntry {
   const boundingClientRect = element.getBoundingClientRect();
 
+  // @ts-ignore
+  // for some reason, the typescript type definition for ResizeObserverEntry
+  // is mismatched between tsdx typecheck and vscode typecheck
   return {
     borderBoxSize: [
       {
@@ -81,6 +84,13 @@ function elementToEntry(element: HTMLElement) {
       },
     ],
     contentRect: boundingClientRect,
+    // devicePixelContentBoxSize: [
+    //   // assume device pixel ratio of 1
+    //   {
+    //     blockSize: boundingClientRect.width,
+    //     inlineSize: boundingClientRect.height,
+    //   },
+    // ],
     target: element,
   };
 }
@@ -88,7 +98,11 @@ function elementToEntry(element: HTMLElement) {
 function mockResizeObserver() {
   const savedImplementation = window.ResizeObserver;
 
-  window.ResizeObserver = MockedResizeObserver;
+  Object.defineProperty(window, 'ResizeObserver', {
+    writable: true,
+    configurable: true,
+    value: MockedResizeObserver,
+  });
 
   afterAll(() => {
     window.ResizeObserver = savedImplementation;

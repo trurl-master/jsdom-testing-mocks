@@ -52,26 +52,29 @@ function mockViewport(desc: ViewportDescription): MockViewport {
     state.listenerHandlers.splice(index, 1);
   };
 
-  window.matchMedia = jest.fn().mockImplementation(query => ({
-    get matches() {
-      return mediaQuery.match(query, state.currentDesc);
-    },
-    media: query,
-    onchange: null,
-    addListener, // deprecated
-    removeListener, // deprecated
-    addEventListener: (eventType: string, handler: Handler) => {
-      if (eventType === 'change') {
-        addListener(handler);
-      }
-    },
-    removeEventListener: (eventType: string, handler: Handler) => {
-      if (eventType === 'change') {
-        removeListener(handler);
-      }
-    },
-    dispatchEvent: jest.fn(),
-  }));
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation(query => ({
+      get matches() {
+        return mediaQuery.match(query, state.currentDesc);
+      },
+      media: query,
+      onchange: null,
+      addListener, // deprecated
+      removeListener, // deprecated
+      addEventListener: (eventType: string, handler: Handler) => {
+        if (eventType === 'change') {
+          addListener(handler);
+        }
+      },
+      removeEventListener: (eventType: string, handler: Handler) => {
+        if (eventType === 'change') {
+          removeListener(handler);
+        }
+      },
+      dispatchEvent: jest.fn(),
+    })),
+  });
 
   return {
     cleanup: () => {
