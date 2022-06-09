@@ -21,8 +21,11 @@ const Nav = (): React.ReactElement => (
           Resize Observer: print my size
         </Link>
       </li>
-      <li>
+      <li style={{ marginRight: '2em' }}>
         <Link to="/viewport">Viewport</Link>
+      </li>
+      <li>
+        <Link to="/viewport-deprecated">Viewport (old)</Link>
       </li>
     </ul>
   </nav>

@@ -7,6 +7,7 @@ import GlobalObserver from './intersection-observer/global-observer/GlobalObserv
 import MeasureParent from './resize-observer/measure-parent/MeasureParent';
 import PrintMySize from './resize-observer/print-my-size/PrintMySize';
 import CustomUseMedia from './viewport/custom-use-media/CustomUseMedia';
+import DeprecatedCustomUseMedia from './viewport/deprecated-use-media/DeprecatedUseMedia';
 
 export default function App() {
   return (
@@ -16,6 +17,10 @@ export default function App() {
         <Switch>
           <Route path="/intersection-observer" component={GlobalObserver} />
           <Route path="/viewport" component={CustomUseMedia} />
+          <Route
+            path="/viewport-deprecated"
+            component={DeprecatedCustomUseMedia}
+          />
           <Route path="/resize-observer/do-i-fit" component={MeasureParent} />
           <Route
             path="/resize-observer/print-my-size"

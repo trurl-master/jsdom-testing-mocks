@@ -1,6 +1,18 @@
 import { useState, useEffect } from 'react';
 
-function useMedia(query: string, defaultValue: any | null = null) {
+function useMedia(
+  query: string,
+  defaultValue: any | null = null,
+  options?:
+    | {
+        callback?: (this: MediaQueryList, ev: MediaQueryListEvent) => any;
+        asObject: false;
+      }
+    | {
+        callback?: (ev: MediaQueryListEvent) => any;
+        asObject: true;
+      }
+) {
   const isInBrowser = typeof window !== 'undefined' && window.matchMedia;
 
   const mq = isInBrowser ? window.matchMedia(query) : null;
@@ -14,7 +26,25 @@ function useMedia(query: string, defaultValue: any | null = null) {
       return;
     }
 
-    const handler = () => setValue(getValue);
+    if (options?.asObject) {
+      const handler = {
+        handleEvent: (ev: MediaQueryListEvent) => {
+          setValue(getValue);
+
+          options?.callback?.(ev);
+        },
+      };
+
+      mq.addEventListener('change', handler);
+
+      return () => mq.removeEventListener('change', handler);
+    }
+
+    function handler(this: MediaQueryList, ev: MediaQueryListEvent) {
+      setValue(getValue);
+
+      options?.callback?.call(this, ev);
+    }
 
     mq.addEventListener('change', handler);
 
