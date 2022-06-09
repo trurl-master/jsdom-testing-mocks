@@ -1,4 +1,6 @@
 import mediaQuery, { MediaValues } from 'css-mediaquery';
+import './MediaQueryListEvent';
+import { MockedMediaQueryListEvent } from './MediaQueryListEvent';
 
 /**
  * A tool that allows testing components that use js media queries (matchMedia)
@@ -29,51 +31,111 @@ export type MockViewport = {
   set: (newDesc: ViewportDescription) => void;
 };
 
-type Handler = () => void;
+type Listener = (this: MediaQueryList, ev: MockedMediaQueryListEvent) => void;
+type ListenerObject = {
+  handleEvent: (ev: MockedMediaQueryListEvent) => void;
+};
+type ListenerOrListenerObject = Listener | ListenerObject;
+
+function isEventListenerObject(
+  obj: ListenerOrListenerObject
+): obj is ListenerObject {
+  return (obj as any).handleEvent !== undefined;
+}
 
 function mockViewport(desc: ViewportDescription): MockViewport {
   const state: {
     currentDesc: ViewportDescription;
-    listenerHandlers: Handler[];
+    oldListeners: {
+      listener: Listener;
+      list: MediaQueryList;
+      matches: boolean;
+    }[];
+    listeners: {
+      listener: ListenerOrListenerObject;
+      list: MediaQueryList;
+      matches: boolean;
+    }[];
   } = {
     currentDesc: desc,
-    listenerHandlers: [],
+    oldListeners: [],
+    listeners: [],
   };
 
   const savedImplementation = window.matchMedia;
 
-  const addListener = (handler: Handler) => {
-    state.listenerHandlers.push(handler);
+  const addOldListener = (
+    list: MediaQueryList,
+    matches: boolean,
+    listener: Listener
+  ) => {
+    state.oldListeners.push({ listener, matches, list });
   };
 
-  const removeListener = (handler: Handler) => {
-    const index = state.listenerHandlers.findIndex(value => value === handler);
+  const removeOldListener = (listenerToRemove: Listener) => {
+    const index = state.oldListeners.findIndex(
+      ({ listener }) => listener === listenerToRemove
+    );
 
-    state.listenerHandlers.splice(index, 1);
+    state.oldListeners.splice(index, 1);
+  };
+
+  const addListener = (
+    list: MediaQueryList,
+    matches: boolean,
+    listener: ListenerOrListenerObject
+  ) => {
+    state.listeners.push({ listener, matches, list });
+  };
+
+  const removeListener = (listenerToRemove: ListenerOrListenerObject) => {
+    const index = state.listeners.findIndex(
+      ({ listener }) => listener === listenerToRemove
+    );
+
+    state.listeners.splice(index, 1);
   };
 
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
-    value: jest.fn().mockImplementation(query => ({
+    value: (query: string): MediaQueryList => ({
       get matches() {
         return mediaQuery.match(query, state.currentDesc);
       },
       media: query,
       onchange: null,
-      addListener, // deprecated
-      removeListener, // deprecated
-      addEventListener: (eventType: string, handler: Handler) => {
+      addListener: function(listener) {
+        if (listener) {
+          addOldListener(this, this.matches, listener);
+        }
+      }, // deprecated
+      removeListener: listener => {
+        if (listener) {
+          removeOldListener(listener);
+        }
+      }, // deprecated
+      addEventListener: function(
+        eventType: Parameters<MediaQueryList['addEventListener']>[0],
+        listener: Parameters<MediaQueryList['addEventListener']>[1]
+      ) {
         if (eventType === 'change') {
-          addListener(handler);
+          addListener(this, this.matches, listener);
         }
       },
-      removeEventListener: (eventType: string, handler: Handler) => {
+      removeEventListener: (
+        eventType: Parameters<MediaQueryList['removeEventListener']>[0],
+        listener: Parameters<MediaQueryList['removeEventListener']>[1]
+      ) => {
         if (eventType === 'change') {
-          removeListener(handler);
+          if (isEventListenerObject(listener)) {
+            removeListener(listener.handleEvent);
+          } else {
+            removeListener(listener);
+          }
         }
       },
       dispatchEvent: jest.fn(),
-    })),
+    }),
   });
 
   return {
@@ -82,7 +144,41 @@ function mockViewport(desc: ViewportDescription): MockViewport {
     },
     set: (newDesc: ViewportDescription) => {
       state.currentDesc = newDesc;
-      state.listenerHandlers.forEach(handler => handler());
+      state.listeners.forEach(({ listener, matches, list }, listenerIndex) => {
+        const newMatches = list.matches;
+
+        if (newMatches !== matches) {
+          const changeEvent = new MediaQueryListEvent('change', {
+            matches: newMatches,
+            media: list.media,
+          });
+
+          if (isEventListenerObject(listener)) {
+            listener.handleEvent(changeEvent);
+          } else {
+            listener.call(list, changeEvent);
+          }
+
+          state.listeners[listenerIndex].matches = newMatches;
+        }
+      });
+
+      state.oldListeners.forEach(
+        ({ listener, matches, list }, listenerIndex) => {
+          const newMatches = list.matches;
+
+          if (newMatches !== matches) {
+            const changeEvent = new MediaQueryListEvent('change', {
+              matches: newMatches,
+              media: list.media,
+            });
+
+            listener.call(list, changeEvent);
+
+            state.oldListeners[listenerIndex].matches = newMatches;
+          }
+        }
+      );
     },
   };
 }
