@@ -2,6 +2,7 @@ name: Publish
 
 on:
   release:
+    # This specifies that the build will be triggered when we publish a release
     types: [published]
 
 jobs:
@@ -16,9 +17,9 @@ jobs:
           node-version: 'lts/*'
           registry-url: https://registry.npmjs.org/
 
-      - run: yarn install
+      - run: npm run install
 
-      - run: yarn build
+      - run: npm run build
 
       - run: npm publish --access public
         env:

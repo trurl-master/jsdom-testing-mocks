@@ -15,7 +15,7 @@ A set of tools for emulating browser behavior in jsdom environment
 ## Installation
 
 ```sh
-npm install --save-dev jsdom-testing-mocks
+npm i --D jsdom-testing-mocks
 ```
 
 or
@@ -171,7 +171,7 @@ const DivWithSize = () => {
   const ref = useRef(null);
 
   useEffect(() => {
-    const observer = new ResizeObserver(entries => {
+    const observer = new ResizeObserver((entries) => {
       setSize({
         width: entries[0].contentRect.width,
         height: entries[0].contentRect.height,
