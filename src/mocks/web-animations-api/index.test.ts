@@ -1,7 +1,6 @@
 import { mockAnimationsApi } from './index';
-import { expectTime } from './testHelpers';
 
-const { setDurationMultiplier } = mockAnimationsApi();
+mockAnimationsApi();
 
 describe('Animations API', () => {
   it('should be defined', () => {
@@ -35,35 +34,5 @@ describe('Animations API', () => {
 
     expect(element.getAnimations().length).toBe(0);
     expect(document.getAnimations().length).toBe(0);
-  });
-
-  it('should set duration multiplier', async () => {
-    // speed up animations 10 times
-    setDurationMultiplier(0.1);
-
-    const element = document.createElement('div');
-
-    const timeBefore = performance.now();
-    const animation = element.animate({ opacity: 0 }, 1000);
-
-    await animation.finished;
-    const timeAfter = performance.now();
-
-    expectTime(timeAfter - timeBefore, 100);
-    expectTime(animation.currentTime, 1000);
-  });
-
-  // this test should be run after the one that modifies the duration multiplier
-  it('should set duration multiplier back to the global after each test', async () => {
-    const element = document.createElement('div');
-
-    const timeBefore = performance.now();
-    const animation = element.animate({ opacity: 0 }, 1000);
-
-    await animation.finished;
-    const timeAfter = performance.now();
-
-    expectTime(timeAfter - timeBefore, 1000);
-    expectTime(animation.currentTime, 1000);
   });
 });

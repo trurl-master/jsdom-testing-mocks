@@ -8,6 +8,9 @@ module.exports = {
       tsconfig: {
         jsx: 'react-jsx',
       },
+      diagnostics: {
+        warnOnly: true,
+      },
     },
   },
 };

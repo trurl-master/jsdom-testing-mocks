@@ -3,7 +3,7 @@ import { render, act, screen } from '@testing-library/react';
 import {
   mockResizeObserver,
   mockElementBoundingClientRect,
-} from '../../../src';
+} from '../../../dist';
 
 import MeasureParent from '../components/resize-observer/measure-parent/MeasureParent';
 import PrintMySize from '../components/resize-observer/print-my-size/PrintMySize';

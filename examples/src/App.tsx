@@ -7,6 +7,9 @@ import MeasureParent from './components/resize-observer/measure-parent/MeasurePa
 import PrintMySize from './components/resize-observer/print-my-size/PrintMySize';
 import CustomUseMedia from './components/viewport/custom-use-media/CustomUseMedia';
 import DeprecatedCustomUseMedia from './components/viewport/deprecated-use-media/DeprecatedUseMedia';
+import { Layout } from './components/animations/Layout';
+import AnimationsInView from './components/animations/examples/InView';
+import AnimationsIndex from './components/animations';
 
 function Index() {
   return <></>;
@@ -28,6 +31,10 @@ function App() {
           path="/resize-observer/print-my-size"
           element={<PrintMySize />}
         />
+        <Route path="/animations" element={<Layout />}>
+          <Route path="in-view" element={<AnimationsInView />} />
+          <Route index element={<AnimationsIndex />} />
+        </Route>
         <Route path="/" element={<Index />} />
       </Routes>
     </div>

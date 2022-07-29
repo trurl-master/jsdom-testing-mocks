@@ -1,6 +1,6 @@
 import { render, act, screen } from '@testing-library/react';
 
-import { mockViewport, mockViewportForTestGroup } from '../../../src';
+import { mockViewport, mockViewportForTestGroup } from '../../../dist';
 import { MockedMediaQueryListEvent } from '../../../src/mocks/MediaQueryListEvent';
 
 import CustomUseMedia from '../components/viewport/custom-use-media/CustomUseMedia';

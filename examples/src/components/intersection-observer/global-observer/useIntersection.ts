@@ -13,8 +13,8 @@ const generateId = () => {
 
 function createObserver() {
   observer = new IntersectionObserver(
-    entries =>
-      entries.forEach(entry => {
+    (entries) =>
+      entries.forEach((entry) => {
         entryCallbacks[(entry.target as HTMLElement).dataset._ioid as string](
           entry
         );
@@ -40,7 +40,7 @@ const useIntersection = (
 
     const domId = generateId();
 
-    entryCallbacks[domId.toString()] = entry => {
+    entryCallbacks[domId.toString()] = (entry) => {
       setIsIntersecting(entry.isIntersecting);
       callback?.([entry], observer);
     };
@@ -57,7 +57,7 @@ const useIntersection = (
       delete entryCallbacks[domId];
       observer.unobserve(node);
     };
-  }, [ref]);
+  }, [callback, ref]);
 
   return isIntersecting;
 };

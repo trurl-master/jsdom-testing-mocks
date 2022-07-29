@@ -10,13 +10,11 @@ const useDoIFit = (ref: React.RefObject<HTMLElement>) => {
 
     const parentElement = ref.current.parentElement;
 
-    const observer = new ResizeObserver(entries => {
+    const observer = new ResizeObserver((entries) => {
       const { width, height } = entries[0].contentRect;
       const childElement = parentElement.children[0] as HTMLElement;
-      const {
-        width: childWidth,
-        height: childHeight,
-      } = childElement.getBoundingClientRect();
+      const { width: childWidth, height: childHeight } =
+        childElement.getBoundingClientRect();
 
       setIFit(childWidth < width && childHeight < height);
     });
@@ -26,7 +24,7 @@ const useDoIFit = (ref: React.RefObject<HTMLElement>) => {
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [ref]);
 
   return iFit;
 };

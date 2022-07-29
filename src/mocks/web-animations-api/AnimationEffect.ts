@@ -10,6 +10,12 @@ class MockedAnimationEffect implements AnimationEffect {
     iterations: 1,
   };
 
+  constructor() {
+    if (this.constructor === MockedAnimationEffect) {
+      throw new TypeError('Illegal constructor');
+    }
+  }
+
   #getNormalizedDuration(): number {
     // the only possible value is "auto"
     if (typeof this.#timing.duration === 'string') {
@@ -33,13 +39,16 @@ class MockedAnimationEffect implements AnimationEffect {
         ? Infinity
         : duration * (this.#timing.iterations ?? 1);
 
-    // Calculated as (start_delay + active_duration + end_delay)
+    // The end time of an animation effect is the result of evaluating max(start delay + active duration + end delay, 0).
     const endTime =
       this.#timing.iterations === Infinity
         ? Infinity
-        : (this.#timing.delay ?? 0) +
-          activeDuration +
-          (this.#timing.endDelay ?? 0);
+        : Math.max(
+            (this.#timing.delay ?? 0) +
+              activeDuration +
+              (this.#timing.endDelay ?? 0),
+            0
+          );
 
     // must be linked to the animation
     const currentIteration = null;

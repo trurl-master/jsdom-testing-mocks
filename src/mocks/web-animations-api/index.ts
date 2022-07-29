@@ -1,4 +1,4 @@
-import { setDurationMultiplier } from './Animation';
+import './Animation';
 
 const elementAnimations = new Map<Element, Animation[]>();
 
@@ -42,15 +42,9 @@ function getAllAnimations() {
   return Array.from(elementAnimations.values()).flat();
 }
 
-type MockAnimationsApiOptions = {
-  durationMultiplier?: number;
-};
+// type MockAnimationsApiOptions = {};
 
-function mockAnimationsApi({
-  durationMultiplier = 1,
-}: MockAnimationsApiOptions = {}) {
-  setDurationMultiplier(durationMultiplier);
-
+function mockAnimationsApi(/* {}: MockAnimationsApiOptions = {} */) {
   const savedAnimate = Element.prototype.animate;
   const savedGetAnimations = Element.prototype.getAnimations;
   const savedGetAllAnimations = Document.prototype.getAnimations;
@@ -75,7 +69,6 @@ function mockAnimationsApi({
   });
 
   afterEach(() => {
-    setDurationMultiplier(durationMultiplier);
     elementAnimations.clear();
   });
 
@@ -85,9 +78,7 @@ function mockAnimationsApi({
     Document.prototype.getAnimations = savedGetAllAnimations;
   });
 
-  return {
-    setDurationMultiplier,
-  };
+  // return {};
 }
 
 export { mockAnimationsApi };

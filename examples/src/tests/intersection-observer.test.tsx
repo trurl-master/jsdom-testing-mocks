@@ -3,9 +3,8 @@ import { render, act, screen } from '@testing-library/react';
 import {
   mockIntersectionObserver,
   MockedIntersectionObserver,
-} from '../../../src';
-
-import type { IntersectionDescription } from '../../../src';
+  type IntersectionDescription,
+} from '../../../dist';
 
 import App, {
   Section,

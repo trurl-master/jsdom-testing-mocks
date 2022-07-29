@@ -1,4 +1,4 @@
-import { useRef, ReactElement } from 'react';
+import { useRef, type ReactElement } from 'react';
 import useIntersection from './useIntersection';
 
 export const Section = ({

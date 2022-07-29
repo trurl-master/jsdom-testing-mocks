@@ -1,6 +1,6 @@
 {
   "name": "jsdom-testing-mocks",
-  "version": "1.4.0",
+  "version": "1.5.0-beta.1",
   "author": "Ivan Galiatin",
   "license": "MIT",
   "description": "A set of tools for emulating browser behavior in jsdom environment",
@@ -9,7 +9,6 @@
     "url": "git+https://github.com/trurl-master/jsdom-testing-mocks.git"
   },
   "keywords": [
-    "react",
     "testing",
     "jsdom",
     "jest",
@@ -18,7 +17,8 @@
     "Intersection Observer API",
     "Web Animations API",
     "matchMedia",
-    "viewport"
+    "viewport",
+    "react"
   ],
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -33,7 +33,6 @@
     "start": "tsup --watch",
     "build": "tsup",
     "test": "jest",
-    "coverage": "vitest run --coverage",
     "lint": "eslint src/ --ext .ts,.tsx",
     "prepare": "tsup"
   },
@@ -67,6 +66,7 @@
     "legacyOutput": true
   },
   "dependencies": {
+    "bezier-easing": "^2.1.0",
     "css-mediaquery": "^0.1.2"
   },
   "devDependencies": {
@@ -96,7 +96,6 @@
     "tslib": "^2.4.0",
     "tsup": "^6.1.3",
     "type-fest": "^2.15.1",
-    "typescript": "^4.7.4",
-    "vitest": "^0.16.0"
+    "typescript": "^4.7.4"
   }
 }
