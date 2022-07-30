@@ -1,9 +1,9 @@
-name: Publish
+name: Publish Beta
 
 on:
   release:
-    branches:
-      - master
+    tags:
+      - v*.*.*-beta.*
     # This specifies that the build will be triggered when we publish a release
     types: [published]
 
@@ -24,6 +24,6 @@ jobs:
 
       - run: npm run build
 
-      - run: npm publish --dry-run --access public
+      - run: npm publish --dry-run --tag beta --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
