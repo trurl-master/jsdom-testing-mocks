@@ -40,7 +40,7 @@ type ListenerOrListenerObject = Listener | ListenerObject;
 function isEventListenerObject(
   obj: ListenerOrListenerObject
 ): obj is ListenerObject {
-  return (obj as any).handleEvent !== undefined;
+  return (obj as ListenerObject).handleEvent !== undefined;
 }
 
 function mockViewport(desc: ViewportDescription): MockViewport {
@@ -104,17 +104,17 @@ function mockViewport(desc: ViewportDescription): MockViewport {
       },
       media: query,
       onchange: null,
-      addListener: function(listener) {
+      addListener: function (listener) {
         if (listener) {
           addOldListener(this, this.matches, listener);
         }
       }, // deprecated
-      removeListener: listener => {
+      removeListener: (listener) => {
         if (listener) {
           removeOldListener(listener);
         }
       }, // deprecated
-      addEventListener: function(
+      addEventListener: function (
         eventType: Parameters<MediaQueryList['addEventListener']>[0],
         listener: Parameters<MediaQueryList['addEventListener']>[1]
       ) {

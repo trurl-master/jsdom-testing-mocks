@@ -33,6 +33,8 @@
     "start": "tsup --watch",
     "build": "tsup",
     "test": "jest",
+    "test:examples": "npm --prefix ./examples run test",
+    "test:all": "npm run test && npm run test:examples",
     "lint": "eslint src/ --ext .ts,.tsx",
     "prepare": "tsup"
   },
