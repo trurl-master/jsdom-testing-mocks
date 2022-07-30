@@ -1,6 +1,6 @@
 {
   "name": "jsdom-testing-mocks",
-  "version": "1.5.0-beta.1",
+  "version": "1.5.0-beta.5",
   "author": "Ivan Galiatin",
   "license": "MIT",
   "description": "A set of tools for emulating browser behavior in jsdom environment",
@@ -33,6 +33,8 @@
     "start": "tsup --watch",
     "build": "tsup",
     "test": "jest",
+    "test:examples": "npm --prefix ./examples run test",
+    "test:all": "npm run test && npm run test:examples",
     "lint": "eslint src/ --ext .ts,.tsx",
     "prepare": "tsup"
   },

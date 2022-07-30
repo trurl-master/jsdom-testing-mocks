@@ -6,9 +6,10 @@ on:
     types: [published]
 
 jobs:
-  publish-npm:
-    name: 'Publish to npm'
+  publish:
+    name: 'Publish'
     runs-on: ubuntu-latest
+    if: "!contains(github.ref_name, 'beta')"
     steps:
       - uses: actions/checkout@v2
 
@@ -17,10 +18,32 @@ jobs:
           node-version: 'lts/*'
           registry-url: https://registry.npmjs.org/
 
-      - run: npm run install
+      - name: Install deps and build (with cache)
+        uses: bahmutov/npm-install@v1
 
       - run: npm run build
 
       - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+  publish_beta:
+    name: 'Publish beta'
+    runs-on: ubuntu-latest
+    if: contains(github.ref_name, 'beta')
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 'lts/*'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install deps and build (with cache)
+        uses: bahmutov/npm-install@v1
+
+      - run: npm run build
+
+      - run: npm publish --tag beta --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

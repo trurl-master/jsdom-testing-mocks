@@ -1,5 +1,7 @@
-name: CI
+name: Validate
+
 on: [push]
+
 jobs:
   build:
     name: Build, lint, and test on Node ${{ matrix.node }} and ${{ matrix.os }}
@@ -7,7 +9,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node: ['12.x', '14.x', '16.x']
+        node: ['14.x', '16.x', '18.x']
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
@@ -21,12 +23,16 @@ jobs:
 
       - name: Install deps and build (with cache)
         uses: bahmutov/npm-install@v1
+        with:
+          working-directory: |
+            .
+            examples
 
       - name: Lint
         run: npm run lint
 
       - name: Test
-        run: npm run test --ci --coverage --maxWorkers=2
+        run: npm run test:all --ci --coverage --maxWorkers=2
 
       - name: Build
         run: npm run build

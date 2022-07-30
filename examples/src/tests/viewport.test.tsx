@@ -1,7 +1,6 @@
 import { render, act, screen } from '@testing-library/react';
 
 import { mockViewport, mockViewportForTestGroup } from '../../../dist';
-import { MockedMediaQueryListEvent } from '../../../src/mocks/MediaQueryListEvent';
 
 import CustomUseMedia from '../components/viewport/custom-use-media/CustomUseMedia';
 import DeprecatedUseMedia from '../components/viewport/deprecated-use-media/DeprecatedUseMedia';
@@ -77,7 +76,7 @@ describe('mockViewport', () => {
       expect(screen.getByText('not desktop')).toBeInTheDocument();
       expect(screen.queryByText('desktop')).not.toBeInTheDocument();
       expect(cb).toHaveBeenCalledTimes(1);
-      expect(event).toBeInstanceOf(MockedMediaQueryListEvent);
+      expect(event).toBeInstanceOf(MediaQueryListEvent);
       expect(event.media).toBe('(min-width: 640px)');
       expect(event.matches).toBe(false);
 
@@ -101,7 +100,7 @@ describe('mockViewport', () => {
       const [event] = cb.mock.calls[0];
 
       expect(cb).toHaveBeenCalledTimes(1);
-      expect(event).toBeInstanceOf(MockedMediaQueryListEvent);
+      expect(event).toBeInstanceOf(MediaQueryListEvent);
       expect(event.media).toBe('(min-width: 640px)');
       expect(event.matches).toBe(false);
 
@@ -125,7 +124,7 @@ describe('mockViewport', () => {
       const [event] = cb.mock.calls[0];
 
       expect(cb).toHaveBeenCalledTimes(1);
-      expect(event).toBeInstanceOf(MockedMediaQueryListEvent);
+      expect(event).toBeInstanceOf(MediaQueryListEvent);
       expect(event.media).toBe('(min-width: 640px)');
       expect(event.matches).toBe(false);
 
