@@ -1,7 +1,6 @@
-import './AnimationEffect';
-import './KeyframeEffect';
-import './AnimationPlaybackEvent';
-import './DocumentTimeline';
+import { mockKeyframeEffect } from './KeyframeEffect';
+import { mockAnimationPlaybackEvent } from './AnimationPlaybackEvent';
+import { mockDocumentTimeline } from './DocumentTimeline';
 import { getEasingFunctionFromString } from './easingFunctions';
 
 type ActiveAnimationTimeline = AnimationTimeline & {
@@ -165,6 +164,11 @@ class MockedAnimation extends EventTarget implements Animation {
         reject(error);
       };
     });
+  }
+
+  #silentlyRejectFinishedPromise(error: Error) {
+    this.#finishedPromise.catch(noop);
+    this.#resolvers.finished.reject(error);
   }
 
   #hasPendingTask() {
@@ -401,7 +405,9 @@ class MockedAnimation extends EventTarget implements Animation {
     this.#applyPendingPlaybackRate();
 
     // 5. Reject animation’s current ready promise with a DOMException named "AbortError".
-    this.#resolvers.ready.reject(new DOMException('AbortError'));
+    this.#silentlyRejectFinishedPromise(
+      new DOMException(undefined, 'AbortError')
+    );
 
     // 6. Set the [[PromiseIsHandled]] internal slot of animation’s current ready promise to true.
 
@@ -1145,8 +1151,7 @@ class MockedAnimation extends EventTarget implements Animation {
       this.#resetPendingTasks();
 
       // Reject the current finished promise with a DOMException named "AbortError".
-      // this.#resolvers.finished.reject(new DOMException('AbortError'));
-      this.#resolvers.finished.reject(
+      this.#silentlyRejectFinishedPromise(
         new DOMException('The user aborted a request.', 'AbortError')
       );
 
@@ -1688,12 +1693,18 @@ class MockedAnimation extends EventTarget implements Animation {
   }
 }
 
-if (typeof Animation === 'undefined') {
-  Object.defineProperty(window, 'Animation', {
-    writable: true,
-    configurable: true,
-    value: MockedAnimation,
-  });
+function mockAnimation() {
+  mockKeyframeEffect();
+  mockAnimationPlaybackEvent();
+  mockDocumentTimeline();
+
+  if (typeof Animation === 'undefined') {
+    Object.defineProperty(window, 'Animation', {
+      writable: true,
+      configurable: true,
+      value: MockedAnimation,
+    });
+  }
 }
 
-export { MockedAnimation };
+export { MockedAnimation, mockAnimation };

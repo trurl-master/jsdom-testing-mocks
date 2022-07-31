@@ -1,4 +1,4 @@
-import './Animation';
+import { mockAnimation } from './Animation';
 
 const elementAnimations = new Map<Element, Animation[]>();
 
@@ -42,12 +42,12 @@ function getAllAnimations() {
   return Array.from(elementAnimations.values()).flat();
 }
 
-// type MockAnimationsApiOptions = {};
-
-function mockAnimationsApi(/* {}: MockAnimationsApiOptions = {} */) {
+function mockAnimationsApi() {
   const savedAnimate = Element.prototype.animate;
   const savedGetAnimations = Element.prototype.getAnimations;
   const savedGetAllAnimations = Document.prototype.getAnimations;
+
+  mockAnimation();
 
   Object.defineProperties(Element.prototype, {
     animate: {
@@ -77,8 +77,6 @@ function mockAnimationsApi(/* {}: MockAnimationsApiOptions = {} */) {
     Element.prototype.getAnimations = savedGetAnimations;
     Document.prototype.getAnimations = savedGetAllAnimations;
   });
-
-  // return {};
 }
 
 export { mockAnimationsApi };

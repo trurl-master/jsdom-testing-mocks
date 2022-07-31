@@ -1,4 +1,4 @@
-import { MockedAnimationEffect } from "./AnimationEffect";
+import { mockAnimationEffect, MockedAnimationEffect } from './AnimationEffect';
 
 /**
   Given the structure of PropertyIndexedKeyframes as such:
@@ -35,7 +35,7 @@ export function convertPropertyIndexedKeyframes(
 
       const piKeyframe = propertyArray[keyframeIndex];
 
-      if (typeof piKeyframe === "undefined" || piKeyframe === null) {
+      if (typeof piKeyframe === 'undefined' || piKeyframe === null) {
         continue;
       }
 
@@ -62,7 +62,7 @@ class MockedKeyframeEffect
   extends MockedAnimationEffect
   implements KeyframeEffect
 {
-  composite: CompositeOperation = "replace";
+  composite: CompositeOperation = 'replace';
   iterationComposite: IterationCompositeOperation;
   pseudoElement: string | null = null;
   target: Element | null;
@@ -75,7 +75,7 @@ class MockedKeyframeEffect
   ) {
     super();
 
-    if (typeof options === "number") {
+    if (typeof options === 'number') {
       options = { duration: options };
     }
 
@@ -83,9 +83,9 @@ class MockedKeyframeEffect
 
     this.setKeyframes(keyframes);
     this.target = target;
-    this.composite = composite || "replace";
+    this.composite = composite || 'replace';
     // not actually implemented, just to make ts happy
-    this.iterationComposite = iterationComposite || "replace";
+    this.iterationComposite = iterationComposite || 'replace';
     this.pseudoElement = pseudoElement || null;
     this.updateTiming(timing);
   }
@@ -96,14 +96,14 @@ class MockedKeyframeEffect
     keyframes.forEach((keyframe) => {
       const offset = keyframe.offset;
 
-      if (typeof offset === "number") {
+      if (typeof offset === 'number') {
         if (offset < 0 || offset > 1) {
           throw new TypeError(
             "Failed to construct 'KeyframeEffect': Offsets must be null or in the range [0,1]."
           );
         }
 
-        if (typeof lastExplicitOffset === "number") {
+        if (typeof lastExplicitOffset === 'number') {
           if (offset < lastExplicitOffset) {
             throw new TypeError(
               "Failed to construct 'KeyframeEffect': Offsets must be monotonically non-decreasing."
@@ -131,7 +131,7 @@ class MockedKeyframeEffect
         const computedKeyframe = {
           offset: offset ?? null,
           composite: composite ?? this.composite,
-          easing: easing ?? "linear",
+          easing: easing ?? 'linear',
           computedOffset: currentOffset,
           ...keyframe,
         };
@@ -144,7 +144,7 @@ class MockedKeyframeEffect
         for (let i = index + 1; i < totalKeyframes; i++) {
           const offset = this.#keyframes[i].offset;
 
-          if (typeof offset === "number") {
+          if (typeof offset === 'number') {
             nextOffset = offset;
             keyframesUntilNextOffset = i - index;
             break;
@@ -157,7 +157,7 @@ class MockedKeyframeEffect
         }
 
         const offsetDiff =
-          typeof keyframesUntilNextOffset === "number" &&
+          typeof keyframesUntilNextOffset === 'number' &&
           keyframesUntilNextOffset > 0
             ? (nextOffset - currentOffset) / keyframesUntilNextOffset
             : 0;
@@ -186,12 +186,16 @@ class MockedKeyframeEffect
   }
 }
 
-if (typeof KeyframeEffect === "undefined") {
-  Object.defineProperty(window, "KeyframeEffect", {
-    writable: true,
-    configurable: true,
-    value: MockedKeyframeEffect,
-  });
+function mockKeyframeEffect() {
+  mockAnimationEffect();
+
+  if (typeof KeyframeEffect === 'undefined') {
+    Object.defineProperty(window, 'KeyframeEffect', {
+      writable: true,
+      configurable: true,
+      value: MockedKeyframeEffect,
+    });
+  }
 }
 
-export { MockedKeyframeEffect };
+export { MockedKeyframeEffect, mockKeyframeEffect };

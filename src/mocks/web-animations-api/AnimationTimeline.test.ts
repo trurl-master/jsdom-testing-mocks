@@ -1,4 +1,6 @@
-import './AnimationTimeline';
+import { mockAnimationTimeline } from './AnimationTimeline';
+
+mockAnimationTimeline();
 
 describe('AnimationTimeline', () => {
   it('should be defined', () => {

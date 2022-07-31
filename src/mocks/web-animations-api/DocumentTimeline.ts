@@ -1,7 +1,10 @@
-import './AnimationTimeline';
+import {
+  mockAnimationTimeline,
+  MockedAnimationTimeline,
+} from './AnimationTimeline';
 
 class MockedDocumentTimeline
-  extends AnimationTimeline
+  extends MockedAnimationTimeline
   implements DocumentTimeline
 {
   #originTime = 0;
@@ -17,16 +20,22 @@ class MockedDocumentTimeline
   }
 }
 
-if (typeof DocumentTimeline === 'undefined') {
-  Object.defineProperty(window, 'DocumentTimeline', {
-    writable: true,
-    configurable: true,
-    value: MockedDocumentTimeline,
-  });
+function mockDocumentTimeline() {
+  mockAnimationTimeline();
 
-  Object.defineProperty(Document.prototype, 'timeline', {
-    writable: true,
-    configurable: true,
-    value: new MockedDocumentTimeline(),
-  });
+  if (typeof DocumentTimeline === 'undefined') {
+    Object.defineProperty(window, 'DocumentTimeline', {
+      writable: true,
+      configurable: true,
+      value: MockedDocumentTimeline,
+    });
+
+    Object.defineProperty(Document.prototype, 'timeline', {
+      writable: true,
+      configurable: true,
+      value: new MockedDocumentTimeline(),
+    });
+  }
 }
+
+export { mockDocumentTimeline };

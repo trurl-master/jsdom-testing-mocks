@@ -1,7 +1,10 @@
 import {
   MockedKeyframeEffect,
   convertPropertyIndexedKeyframes,
+  mockKeyframeEffect,
 } from './KeyframeEffect';
+
+mockKeyframeEffect();
 
 describe('KeyframeEffect', () => {
   it('should have correct properties by default', () => {

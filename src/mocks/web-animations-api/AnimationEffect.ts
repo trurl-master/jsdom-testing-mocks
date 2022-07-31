@@ -71,12 +71,14 @@ class MockedAnimationEffect implements AnimationEffect {
   }
 }
 
-if (typeof AnimationEffect === 'undefined') {
-  Object.defineProperty(window, 'AnimationEffect', {
-    writable: true,
-    configurable: true,
-    value: MockedAnimationEffect,
-  });
+function mockAnimationEffect() {
+  if (typeof AnimationEffect === 'undefined') {
+    Object.defineProperty(window, 'AnimationEffect', {
+      writable: true,
+      configurable: true,
+      value: MockedAnimationEffect,
+    });
+  }
 }
 
-export { MockedAnimationEffect };
+export { MockedAnimationEffect, mockAnimationEffect };

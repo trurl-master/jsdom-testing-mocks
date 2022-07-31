@@ -1,5 +1,6 @@
-import './DocumentTimeline';
+import { mockDocumentTimeline } from './DocumentTimeline';
 
+mockDocumentTimeline();
 jest.useFakeTimers();
 
 describe('DocumentTimeline', () => {

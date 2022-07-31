@@ -1,6 +1,6 @@
 {
   "name": "jsdom-testing-mocks",
-  "version": "1.5.0-beta.5",
+  "version": "1.5.0-beta.6",
   "author": "Ivan Galiatin",
   "license": "MIT",
   "description": "A set of tools for emulating browser behavior in jsdom environment",

@@ -10,10 +10,14 @@ class MockedAnimationTimeline implements AnimationTimeline {
   }
 }
 
-if (typeof AnimationTimeline === 'undefined') {
-  Object.defineProperty(window, 'AnimationTimeline', {
-    writable: true,
-    configurable: true,
-    value: MockedAnimationTimeline,
-  });
+function mockAnimationTimeline() {
+  if (typeof AnimationTimeline === 'undefined') {
+    Object.defineProperty(window, 'AnimationTimeline', {
+      writable: true,
+      configurable: true,
+      value: MockedAnimationTimeline,
+    });
+  }
 }
+
+export { MockedAnimationTimeline, mockAnimationTimeline };

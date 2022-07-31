@@ -1,4 +1,6 @@
-import './AnimationEffect';
+import { mockAnimationEffect } from './AnimationEffect';
+
+mockAnimationEffect();
 
 describe('AnimationEffect', () => {
   it('should be defined', () => {
