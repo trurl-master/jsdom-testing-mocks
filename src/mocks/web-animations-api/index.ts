@@ -17,7 +17,7 @@ function animate(
 
   elementAnimations.set(this, animations);
 
-  animation.finished.then(() => {
+  animation.addEventListener('finish', () => {
     const animations = elementAnimations.get(this);
 
     if (animations) {
