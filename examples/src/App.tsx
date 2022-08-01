@@ -8,7 +8,8 @@ import PrintMySize from './components/resize-observer/print-my-size/PrintMySize'
 import CustomUseMedia from './components/viewport/custom-use-media/CustomUseMedia';
 import DeprecatedCustomUseMedia from './components/viewport/deprecated-use-media/DeprecatedUseMedia';
 import { Layout } from './components/animations/Layout';
-import AnimationsInView from './components/animations/examples/InView';
+import AnimationsInView from './components/animations/examples/inview/InView';
+import AnimationsAnimatePresence from './components/animations/examples/animate-presence/AnimatePresence';
 import AnimationsIndex from './components/animations';
 
 function Index() {
@@ -33,6 +34,10 @@ function App() {
         />
         <Route path="/animations" element={<Layout />}>
           <Route path="in-view" element={<AnimationsInView />} />
+          <Route
+            path="animate-presence"
+            element={<AnimationsAnimatePresence />}
+          />
           <Route index element={<AnimationsIndex />} />
         </Route>
         <Route path="/" element={<Index />} />

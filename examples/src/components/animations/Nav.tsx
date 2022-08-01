@@ -7,6 +7,9 @@ const Nav = () => {
         <li>
           <a href="/animations/in-view">Motion One InView</a>
         </li>
+        <li>
+          <a href="/animations/animate-presence">AnimatePresence</a>
+        </li>
       </ul>
     </nav>
   );

@@ -3,7 +3,7 @@ import { render, act, screen, waitFor } from '@testing-library/react';
 import {
   mockIntersectionObserver,
   mockAnimationsApi,
-} from '../../../../../dist';
+} from '../../../../../../dist';
 
 import InView from './InView';
 
