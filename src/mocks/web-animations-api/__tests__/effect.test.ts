@@ -1,4 +1,4 @@
-import { playAnimation, FRAME_DURATION } from './tools';
+import { playAnimation, FRAME_DURATION } from '../testTools';
 import { mockAnimationsApi } from '../index';
 
 mockAnimationsApi();

@@ -1,4 +1,4 @@
-import { mockAnimationTimeline } from './AnimationTimeline';
+import { mockAnimationTimeline } from '../AnimationTimeline';
 
 mockAnimationTimeline();
 

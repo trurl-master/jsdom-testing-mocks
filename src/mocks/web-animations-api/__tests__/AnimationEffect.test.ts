@@ -1,4 +1,4 @@
-import { mockAnimationEffect } from './AnimationEffect';
+import { mockAnimationEffect } from '../AnimationEffect';
 
 mockAnimationEffect();
 

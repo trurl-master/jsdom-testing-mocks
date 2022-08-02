@@ -1,4 +1,4 @@
-import { mockAnimationsApi } from './index';
+import { mockAnimationsApi } from '../index';
 
 mockAnimationsApi();
 

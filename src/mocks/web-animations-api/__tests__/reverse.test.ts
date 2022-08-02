@@ -4,7 +4,7 @@ import {
   playAnimationInReverse,
   updateAnimationPlaybackRate,
   FRAME_DURATION,
-} from './tools';
+} from '../testTools';
 import { mockAnimationsApi } from '../index';
 
 mockAnimationsApi();

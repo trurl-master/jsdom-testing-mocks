@@ -2,7 +2,7 @@ import {
   MockedKeyframeEffect,
   convertPropertyIndexedKeyframes,
   mockKeyframeEffect,
-} from './KeyframeEffect';
+} from '../KeyframeEffect';
 
 mockKeyframeEffect();
 
