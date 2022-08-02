@@ -28,14 +28,14 @@ class MockedResizeObserver implements ResizeObserver {
   };
 
   unobserve = (node: HTMLElement) => {
-    const index = this.nodes.findIndex(value => value.isSameNode(node));
+    const index = this.nodes.findIndex((value) => value.isSameNode(node));
 
     this.nodes.splice(index, 1);
 
     const nodeObservers = state.nodeObservers.get(node);
 
     if (nodeObservers) {
-      const index = nodeObservers.findIndex(mro => mro === this);
+      const index = nodeObservers.findIndex((mro) => mro === this);
 
       nodeObservers.splice(index, 1);
 
@@ -52,7 +52,7 @@ class MockedResizeObserver implements ResizeObserver {
       const nodeObservers = state.nodeObservers.get(node);
 
       if (nodeObservers) {
-        const index = nodeObservers.findIndex(mro => mro === this);
+        const index = nodeObservers.findIndex((mro) => mro === this);
 
         nodeObservers.splice(index, 1);
 
@@ -67,9 +67,6 @@ class MockedResizeObserver implements ResizeObserver {
 function elementToEntry(element: HTMLElement): ResizeObserverEntry {
   const boundingClientRect = element.getBoundingClientRect();
 
-  // @ts-ignore
-  // for some reason, the typescript type definition for ResizeObserverEntry
-  // is mismatched between tsdx typecheck and vscode typecheck
   return {
     borderBoxSize: [
       {
@@ -84,13 +81,13 @@ function elementToEntry(element: HTMLElement): ResizeObserverEntry {
       },
     ],
     contentRect: boundingClientRect,
-    // devicePixelContentBoxSize: [
-    //   // assume device pixel ratio of 1
-    //   {
-    //     blockSize: boundingClientRect.width,
-    //     inlineSize: boundingClientRect.height,
-    //   },
-    // ],
+    devicePixelContentBoxSize: [
+      // assume device pixel ratio of 1
+      {
+        blockSize: boundingClientRect.width,
+        inlineSize: boundingClientRect.height,
+      },
+    ],
     target: element,
   };
 }
@@ -115,7 +112,7 @@ function mockResizeObserver() {
       }
 
       for (const observer of state.observers) {
-        const observedSubset = elements.filter(element =>
+        const observedSubset = elements.filter((element) =>
           observer.nodes.includes(element)
         );
 

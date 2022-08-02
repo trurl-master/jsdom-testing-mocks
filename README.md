@@ -15,7 +15,7 @@ A set of tools for emulating browser behavior in jsdom environment
 ## Installation
 
 ```sh
-npm install --save-dev jsdom-testing-mocks
+npm i --D jsdom-testing-mocks
 ```
 
 or
@@ -171,7 +171,7 @@ const DivWithSize = () => {
   const ref = useRef(null);
 
   useEffect(() => {
-    const observer = new ResizeObserver(entries => {
+    const observer = new ResizeObserver((entries) => {
       setSize({
         width: entries[0].contentRect.width,
         height: entries[0].contentRect.height,
@@ -226,6 +226,83 @@ it('prints the size of the div', () => {
 #### .resize(elements: HTMLElement | HTMLElement[])
 
 Triggers all resize observer callbacks for all observers that observe the passed elements
+
+## Mock Web Animations API
+
+_Warning: **experimental**, bug reports, tests and feedback are greatly appreciated_
+
+Mocks WAAPI functionality using `requestAnimationFrame`. With one important limitation — there are no style interpolations. Each frame applies the closest keyframe from list of passed keyframes or a generated "initial keyframe" if only one keyframe is passed (initial keyframe removes/restores all the properties set by the one keyframe passed). As the implementation is based on the [official spec](https://www.w3.org/TR/web-animations-1/) it should support the majority of cases, but the test suite is far from complete, so _here be dragons_
+
+Example, using `React Testing Library`:
+
+```jsx
+import { mockAnimationsApi } from 'jsdom-testing-mocks';
+
+const TestComponent = () => {
+  const [isShown, setIsShown] = useState(false);
+
+  return (
+    <div>
+      {/* AnimatePresence is a component that adds its children in the dom
+          and fades it in using WAAPI, with 2 keyframes: [{ opacity: 0 }, { opacity: 1 }],
+          also adding a div with the word "Done!" after the animation has finished
+          You can find implementation in examples
+       */}
+      <AnimatePresence>{isShown && <div>Hehey!</div>}</AnimatePresence>
+      <button
+        onClick={() => {
+          setIsShown(true);
+        }}
+      >
+        Show
+      </button>
+    </div>
+  );
+};
+
+mockAnimationsApi();
+
+it('adds an element into the dom and fades it in', async () => {
+  render(<TestComponent />);
+
+  expect(screen.queryByText('Hehey!')).not.toBeInTheDocument();
+
+  await userEvent.click(screen.getByText('Show'));
+
+  // assume there's only one animation present in the document at this point
+  // in practice it's better to get the running animation from the element itself
+  const element = screen.getByText('Hehey!');
+  const animation = document.getAnimations()[0];
+
+  // our AnimatePresence implementation has 2 keyframes: opacity: 0 and opacity: 1
+  // which allows us to test the visibility of the element, the first keyframe
+  // is applied right after the animation is ready
+  await animation.ready;
+
+  expect(element).not.toBeVisible();
+
+  // this test will pass right after 50% of the animation is complete
+  // because this mock doesn't interpolate keyframes values,
+  // but chooses the closest one at each frame
+  await waitFor(() => {
+    expect(element).toBeVisible();
+  });
+
+  // AnimatePresence will also add a div with the text 'Done!' after animation is complete
+  await waitFor(() => {
+    expect(screen.getByText('Done!')).toBeInTheDocument();
+  });
+});
+```
+
+### Using with fake timers
+
+It's perfectly usable with fake timers, except for the [issue with promises](https://github.com/facebook/jest/issues/2157). Also note that you would need to manually advance timers by the duration of the animation taking frame duration (which currently is set to 16ms in `jest`/`sinon.js`) into account. So if you, say, have an animation with a duration of `300ms`, you will need to advance your timers by the value that is at least the closest multiple of the frame duration, which in this case is `304ms` (`19` frames \* `16ms`). Otherwise the last frame may not fire and the animation won't finish.
+
+### Current issues
+
+- No support for `steps` easings
+- Needs more tests
 
 <!-- prettier-ignore-start -->
 

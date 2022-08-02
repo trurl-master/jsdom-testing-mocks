@@ -23,24 +23,24 @@ const defaultState: State = {
 
 const state = { ...defaultState };
 
-function isElement(tested: any): tested is HTMLElement {
+function isElement(tested: unknown): tested is HTMLElement {
   return typeof HTMLElement === 'object'
-    ? tested instanceof HTMLElement //DOM2
-    : tested &&
+    ? tested instanceof HTMLElement // DOM2
+    : Boolean(tested) &&
         typeof tested === 'object' &&
         tested !== null &&
-        tested.nodeType === 1 &&
-        typeof tested.nodeName === 'string';
+        (tested as HTMLElement).nodeType === 1 &&
+        typeof (tested as HTMLElement).nodeName === 'string';
 }
 
 function getObserversByNode(node: HTMLElement) {
-  return state.observers.filter(observer => observer.nodes.includes(node));
+  return state.observers.filter((observer) => observer.nodes.includes(node));
 }
 
 function normalizeNodeDescriptions(
   nodeDescriptions: (NodeIntersectionDescription | HTMLElement)[]
 ): NodeIntersectionDescription[] {
-  return nodeDescriptions.map(nodeDesc => {
+  return nodeDescriptions.map((nodeDesc) => {
     if (isElement(nodeDesc)) {
       return { node: nodeDesc };
     }
@@ -60,7 +60,7 @@ function getNodeDescriptionsByObserver(
   nodeDescriptions.forEach(({ node, desc }) => {
     const observers = getObserversByNode(node);
 
-    observers.forEach(observer => {
+    observers.forEach((observer) => {
       const observerNode = observerNodes.find(
         ({ observer: obs }) => obs === observer
       );
@@ -80,7 +80,7 @@ function getNodeDescriptionsByObserver(
 }
 
 function findNodeIndex(nodes: HTMLElement[], node: HTMLElement) {
-  const index = nodes.findIndex(nodeInArray => node.isSameNode(nodeInArray));
+  const index = nodes.findIndex((nodeInArray) => node.isSameNode(nodeInArray));
 
   if (index === -1) {
     throw new Error('IntersectionObserver mock: node not found');
@@ -96,7 +96,7 @@ export class MockedIntersectionObserver implements IntersectionObserver {
   readonly root: Element | Document | null = null;
   readonly rootMargin: string = '0px 0px 0px 0px';
   readonly thresholds: ReadonlyArray<number> = [0];
-  timeOrigin: number = 0;
+  timeOrigin = 0;
 
   constructor(
     callback: IntersectionObserverCallback,
@@ -139,7 +139,7 @@ export class MockedIntersectionObserver implements IntersectionObserver {
   }
 
   unobserve(node: HTMLElement) {
-    const index = this.nodes.findIndex(value => value.isSameNode(node));
+    const index = this.nodes.findIndex((value) => value.isSameNode(node));
 
     this.nodes.splice(index, 1);
     this.nodeStates.splice(index, 1);
@@ -203,8 +203,8 @@ function mockIntersectionObserver() {
 
   return {
     enterAll: (desc?: IntersectionDescription) => {
-      state.observers.forEach(observer => {
-        const nodeDescriptions = observer.nodes.map(node => ({
+      state.observers.forEach((observer) => {
+        const nodeDescriptions = observer.nodes.map((node) => ({
           node,
           desc: {
             intersectionRatio: 1,
@@ -219,7 +219,7 @@ function mockIntersectionObserver() {
     enterNode: (node: HTMLElement, desc?: IntersectionDescription) => {
       const observers = getObserversByNode(node);
 
-      observers.forEach(observer => {
+      observers.forEach((observer) => {
         observer.triggerNode(node, {
           intersectionRatio: 1,
           ...desc,
@@ -230,9 +230,8 @@ function mockIntersectionObserver() {
     enterNodes: (
       nodeDescriptions: (NodeIntersectionDescription | HTMLElement)[]
     ) => {
-      const normalizedNodeDescriptions = normalizeNodeDescriptions(
-        nodeDescriptions
-      );
+      const normalizedNodeDescriptions =
+        normalizeNodeDescriptions(nodeDescriptions);
       const observerNodes = getNodeDescriptionsByObserver(
         normalizedNodeDescriptions
       );
@@ -247,8 +246,8 @@ function mockIntersectionObserver() {
       });
     },
     leaveAll: (desc?: IntersectionDescription) => {
-      state.observers.forEach(observer => {
-        const nodeDescriptions = observer.nodes.map(node => ({
+      state.observers.forEach((observer) => {
+        const nodeDescriptions = observer.nodes.map((node) => ({
           node,
           desc: {
             intersectionRatio: 0,
@@ -263,7 +262,7 @@ function mockIntersectionObserver() {
     leaveNode: (node: HTMLElement, desc?: IntersectionDescription) => {
       const observers = getObserversByNode(node);
 
-      observers.forEach(observer => {
+      observers.forEach((observer) => {
         observer.triggerNode(node, {
           intersectionRatio: 0,
           ...desc,
@@ -274,9 +273,8 @@ function mockIntersectionObserver() {
     triggerNodes: (
       nodeDescriptions: (NodeIntersectionDescription | HTMLElement)[]
     ) => {
-      const normalizedNodeDescriptions = normalizeNodeDescriptions(
-        nodeDescriptions
-      );
+      const normalizedNodeDescriptions =
+        normalizeNodeDescriptions(nodeDescriptions);
 
       const observerNodes = getNodeDescriptionsByObserver(
         normalizedNodeDescriptions
@@ -289,9 +287,8 @@ function mockIntersectionObserver() {
     leaveNodes: (
       nodeDescriptions: (NodeIntersectionDescription | HTMLElement)[]
     ) => {
-      const normalizedNodeDescriptions = normalizeNodeDescriptions(
-        nodeDescriptions
-      );
+      const normalizedNodeDescriptions =
+        normalizeNodeDescriptions(nodeDescriptions);
 
       const observerNodes = getNodeDescriptionsByObserver(
         normalizedNodeDescriptions
