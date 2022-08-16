@@ -33,8 +33,7 @@ describe('mockResizeObserver', () => {
       mockElementBoundingClientRect(child2, { width: 500, height: 300 });
 
       act(() => {
-        resizeObserver.resize(parent1);
-        resizeObserver.resize(parent2);
+        resizeObserver.resize();
       });
 
       expect(
@@ -48,8 +47,7 @@ describe('mockResizeObserver', () => {
       mockElementBoundingClientRect(parent2, { width: 600, height: 400 });
 
       act(() => {
-        resizeObserver.resize(parent1);
-        resizeObserver.resize(parent2);
+        resizeObserver.resize([parent1, parent2]);
       });
 
       expect(
@@ -64,20 +62,20 @@ describe('mockResizeObserver', () => {
 
       expect(
         screen.getAllByTestId('element').map((node) => node.textContent)
-      ).toEqual(['', '']);
+      ).toEqual(['', '', '']);
 
       const elements = screen.getAllByTestId('element');
 
       mockElementBoundingClientRect(elements[0], { width: 400, height: 200 });
-      mockElementBoundingClientRect(elements[1], { width: 230, height: 70 });
+      mockElementBoundingClientRect(elements[2], { width: 100, height: 200 });
 
       act(() => {
-        resizeObserver.resize(elements);
+        resizeObserver.resize();
       });
 
       expect(
         screen.getAllByTestId('element').map((node) => node.textContent)
-      ).toEqual(['400x200', '230x70']);
+      ).toEqual(['400x200', '', '100x200']);
     });
   });
 });

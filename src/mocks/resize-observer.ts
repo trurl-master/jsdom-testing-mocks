@@ -1,16 +1,24 @@
 type State = {
   observers: MockedResizeObserver[];
-  nodeObservers: Map<HTMLElement, MockedResizeObserver[]>;
+  targetObservers: Map<HTMLElement, MockedResizeObserver[]>;
 };
 
-const state: State = {
+const defaultState: State = {
   observers: [],
-  nodeObservers: new Map(),
+  targetObservers: new Map(),
 };
+
+const state: State = { ...defaultState };
+
+function resetState() {
+  state.observers = defaultState.observers;
+  state.targetObservers = defaultState.targetObservers;
+}
 
 class MockedResizeObserver implements ResizeObserver {
-  nodes: HTMLElement[] = [];
   callback: ResizeObserverCallback;
+  observationTargets = new Set<HTMLElement>();
+  activeTargets = new Set<HTMLElement>();
 
   constructor(callback: ResizeObserverCallback) {
     this.callback = callback;
@@ -18,54 +26,58 @@ class MockedResizeObserver implements ResizeObserver {
   }
 
   observe = (node: HTMLElement) => {
-    this.nodes.push(node);
+    this.observationTargets.add(node);
+    this.activeTargets.add(node);
 
-    if (state.nodeObservers.has(node)) {
-      state.nodeObservers.get(node)!.push(this);
+    if (state.targetObservers.has(node)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      state.targetObservers.get(node)!.push(this);
     } else {
-      state.nodeObservers.set(node, [this]);
+      state.targetObservers.set(node, [this]);
     }
   };
 
   unobserve = (node: HTMLElement) => {
-    const index = this.nodes.findIndex((value) => value.isSameNode(node));
+    this.observationTargets.delete(node);
 
-    this.nodes.splice(index, 1);
+    const targetObservers = state.targetObservers.get(node);
 
-    const nodeObservers = state.nodeObservers.get(node);
+    if (targetObservers) {
+      const index = targetObservers.findIndex((mro) => mro === this);
 
-    if (nodeObservers) {
-      const index = nodeObservers.findIndex((mro) => mro === this);
+      targetObservers.splice(index, 1);
 
-      nodeObservers.splice(index, 1);
-
-      if (nodeObservers.length === 0) {
-        state.nodeObservers.delete(node);
+      if (targetObservers.length === 0) {
+        state.targetObservers.delete(node);
       }
     }
   };
 
   disconnect = () => {
-    this.nodes = [];
+    this.observationTargets.clear();
 
-    for (const node of this.nodes) {
-      const nodeObservers = state.nodeObservers.get(node);
+    for (const node of this.observationTargets) {
+      const targetObservers = state.targetObservers.get(node);
 
-      if (nodeObservers) {
-        const index = nodeObservers.findIndex((mro) => mro === this);
+      if (targetObservers) {
+        const index = targetObservers.findIndex((mro) => mro === this);
 
-        nodeObservers.splice(index, 1);
+        targetObservers.splice(index, 1);
 
-        if (nodeObservers.length === 0) {
-          state.nodeObservers.delete(node);
+        if (targetObservers.length === 0) {
+          state.targetObservers.delete(node);
         }
       }
     }
   };
 }
 
-function elementToEntry(element: HTMLElement): ResizeObserverEntry {
+function elementToEntry(element: HTMLElement): ResizeObserverEntry | null {
   const boundingClientRect = element.getBoundingClientRect();
+
+  if (boundingClientRect.width === 0 && boundingClientRect.height === 0) {
+    return null;
+  }
 
   return {
     borderBoxSize: [
@@ -101,23 +113,56 @@ function mockResizeObserver() {
     value: MockedResizeObserver,
   });
 
+  afterEach(() => {
+    resetState();
+  });
+
   afterAll(() => {
     window.ResizeObserver = savedImplementation;
   });
 
   return {
-    resize: (elements: HTMLElement | HTMLElement[]) => {
+    getObservers: (element?: HTMLElement) => {
+      if (element) {
+        return [...(state.targetObservers.get(element) ?? [])];
+      }
+
+      return [...state.observers];
+    },
+    getObservedElements: (observer?: ResizeObserver) => {
+      if (observer) {
+        return [...(observer as MockedResizeObserver).observationTargets];
+      }
+
+      return [...state.targetObservers.keys()];
+    },
+    resize: (
+      elements: HTMLElement | HTMLElement[] = [],
+      { ignoreImplicit = false } = {}
+    ) => {
       if (!Array.isArray(elements)) {
         elements = [elements];
       }
 
       for (const observer of state.observers) {
         const observedSubset = elements.filter((element) =>
-          observer.nodes.includes(element)
+          observer.observationTargets.has(element)
         );
 
-        if (observedSubset.length > 0) {
-          observer.callback(observedSubset.map(elementToEntry), observer);
+        const observedSubsetAndActive = new Set([
+          ...observedSubset,
+          ...(ignoreImplicit ? [] : observer.activeTargets),
+        ]);
+
+        observer.activeTargets.clear();
+
+        if (observedSubsetAndActive.size > 0) {
+          observer.callback(
+            Array.from(observedSubsetAndActive)
+              .map(elementToEntry)
+              .filter(Boolean) as ResizeObserverEntry[],
+            observer
+          );
         }
       }
     },

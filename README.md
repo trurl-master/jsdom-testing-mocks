@@ -15,7 +15,7 @@ A set of tools for emulating browser behavior in jsdom environment
 ## Installation
 
 ```sh
-npm i --D jsdom-testing-mocks
+npm i -D jsdom-testing-mocks
 ```
 
 or
@@ -23,6 +23,13 @@ or
 ```sh
 yarn add -D jsdom-testing-mocks
 ```
+
+## Mocks
+
+[matchMedia](#mock-viewport),
+[Intersection Observer](#mock-intersectionobserver),
+[Resize Observer](#mock-resizeobserver),
+[Web Animations API](#mock-web-animations-api)
 
 ## Mock viewport
 
@@ -154,9 +161,7 @@ Triggers all IntersectionObservers for each of the observed nodes
 
 ## Mock ResizeObserver
 
-Provides a way of triggering resize observer events. It's up to you to mock elements' sizes. If your component uses `contentRect` provided by the callback, you must mock element's `getBoundingClientRect` (for exemple using a helper function `mockElementBoundingClientRect` provided by the lib)
-
-_Currently the mock doesn't take into account multi-column layouts, so `borderBoxSize` and `contentBoxSize` will contain only one full-sized item_
+Provides a way of triggering resize observer events. It's up to you to mock elements' sizes (the element will not be in the list of entries it its size is 0). If your component uses `contentRect` provided by the callback, you must mock element's `getBoundingClientRect` (for exemple using a helper function `mockElementBoundingClientRect` provided by the lib)
 
 Example, using `React Testing Library`:
 
@@ -204,7 +209,7 @@ it('prints the size of the div', () => {
   mockElementBoundingClientRect(theDiv, { width: 300, height: 200 });
 
   act(() => {
-    resizeObserver.resize(theDiv);
+    resizeObserver.resize();
   });
 
   expect(screen.getByText('300 x 200')).toBeInTheDocument();
@@ -219,13 +224,49 @@ it('prints the size of the div', () => {
 });
 ```
 
+### Caveats
+
+#### Callback on observe
+
+Although the mock doesn't call the resize callback on its own, it keeps track of all the cases when it should be implicitly called (like when the element first begins being observed), and it auto-adds them to the list of elements when `resize` is called. You can disable this in `ResizeOptions`
+
+#### Multi-column layouts
+
+Currently the mock doesn't take into account multi-column layouts, so `borderBoxSize` and `contentBoxSize` will contain only one full-sized item
+
 ### API
 
-`mockResizeObserver` returns an object, that has one method:
+`mockResizeObserver` returns an object, that has several methods:
 
-#### .resize(elements: HTMLElement | HTMLElement[])
+#### .resize(elements?: HTMLElement | HTMLElement[], options: ResizeOptions)
 
-Triggers all resize observer callbacks for all observers that observe the passed elements
+Triggers all resize observer callbacks for all observers that observe the passed elements. Some elements are implicitly resized by the Resize Observer itself, for example when they first attached using `observe`. This mock doesn't call the callback by itself. Instead, it adds them to the list of `entries` when the next `resize` is called (it happens only once per `observe` per element).
+
+In this example the resize callback will be triggered with all observed elements from within `TestedComponent`:
+
+```jsx
+// a component that begins to observe elements in a useEffect
+render(<TestedComponent />);
+
+// ...don't forget to mock sizes
+
+act(() => {
+  // triggers the `resize` callback with the elements for which `observe` has been called
+  resizeObserver.resize();
+});
+```
+
+##### ResizeOptions.ignoreImplicit (`false` by default)
+
+If `true`, do not include imlicit elements in the resize callback entries array
+
+#### .getObservers(element?: HTMLElement)
+
+Returns all observers (observing the `element` if passed)
+
+#### .getObservedElements(observer?: ResizeObserver)
+
+Returns all observed elements (of the `observer` if passed)
 
 ## Mock Web Animations API
 

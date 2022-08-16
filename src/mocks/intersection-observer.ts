@@ -1,8 +1,8 @@
-import { Mutable, PartialDeep } from 'type-fest';
-import './DOMRect';
+import { Writable, PartialDeep } from 'type-fest';
+import './size/DOMRect';
 
 export type IntersectionDescription = Omit<
-  PartialDeep<Mutable<IntersectionObserverEntry>>,
+  PartialDeep<Writable<IntersectionObserverEntry>>,
   'target'
 > & {
   target?: Element;
