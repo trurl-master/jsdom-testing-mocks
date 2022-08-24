@@ -1,28 +1,18 @@
+import { RequireAtLeastOne } from 'type-fest';
+
 type Sizes = {
   borderBoxSize: ResizeObserverSize[];
   contentBoxSize: ResizeObserverSize[];
   contentRect: DOMRectReadOnly;
 };
 
-type BothSizesDefined = {
-  borderBoxSize: ResizeObserverSize[] | ResizeObserverSize;
-  contentBoxSize: ResizeObserverSize[] | ResizeObserverSize;
+type ResizeObserverSizeInput = RequireAtLeastOne<ResizeObserverSize>;
+type SizeInput = {
+  borderBoxSize: ResizeObserverSizeInput[] | ResizeObserverSizeInput;
+  contentBoxSize: ResizeObserverSizeInput[] | ResizeObserverSizeInput;
 };
-type ContentBoxSizeDefined = {
-  borderBoxSize?: ResizeObserverSize[] | ResizeObserverSize;
-  contentBoxSize: ResizeObserverSize[] | ResizeObserverSize;
-};
-type BorderBoxSizeDefined = {
-  borderBoxSize: ResizeObserverSize[] | ResizeObserverSize;
-  contentBoxSize?: ResizeObserverSize[] | ResizeObserverSize;
-};
-// type BothSizesDefined = Pick<Sizes, 'contentBoxSize' | 'borderBoxSize'>;
-// type ContentBoxSizeDefined = Pick<Sizes, 'contentBoxSize'> &
-//   Partial<Pick<Sizes, 'borderBoxSize'>>;
-// type BorderBoxSizeDefined = Pick<Sizes, 'borderBoxSize'> &
-//   Partial<Pick<Sizes, 'contentBoxSize'>>;
 
-type Size = BothSizesDefined | ContentBoxSizeDefined | BorderBoxSizeDefined;
+type Size = RequireAtLeastOne<SizeInput>;
 
 type State = {
   observers: MockedResizeObserver[];
@@ -40,6 +30,15 @@ function resetState() {
   state.observers = [];
   state.targetObservers = new Map();
   state.elementSizes = new Map();
+}
+
+function defineResizeObserverSize(
+  input: ResizeObserverSizeInput
+): ResizeObserverSize {
+  return {
+    blockSize: input.blockSize ?? 0,
+    inlineSize: input.inlineSize ?? 0,
+  };
 }
 
 class MockedResizeObserver implements ResizeObserver {
@@ -180,15 +179,15 @@ function mockResizeObserver() {
           size.contentBoxSize = [size.contentBoxSize];
         }
 
-        contentBoxSize = size.contentBoxSize;
-        borderBoxSize = size.contentBoxSize;
+        contentBoxSize = size.contentBoxSize.map(defineResizeObserverSize);
+        borderBoxSize = contentBoxSize;
       } else if (size.borderBoxSize && !size.contentBoxSize) {
         if (!Array.isArray(size.borderBoxSize)) {
           size.borderBoxSize = [size.borderBoxSize];
         }
 
-        contentBoxSize = size.borderBoxSize;
-        borderBoxSize = size.borderBoxSize;
+        contentBoxSize = size.borderBoxSize.map(defineResizeObserverSize);
+        borderBoxSize = contentBoxSize;
       } else if (size.borderBoxSize && size.contentBoxSize) {
         if (!Array.isArray(size.borderBoxSize)) {
           size.borderBoxSize = [size.borderBoxSize];
@@ -198,8 +197,8 @@ function mockResizeObserver() {
           size.contentBoxSize = [size.contentBoxSize];
         }
 
-        contentBoxSize = size.contentBoxSize as ResizeObserverSize[];
-        borderBoxSize = size.borderBoxSize as ResizeObserverSize[];
+        contentBoxSize = size.contentBoxSize.map(defineResizeObserverSize);
+        borderBoxSize = size.borderBoxSize.map(defineResizeObserverSize);
 
         if (borderBoxSize.length !== contentBoxSize.length) {
           throw new Error(

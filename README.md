@@ -161,7 +161,7 @@ Triggers all IntersectionObservers for each of the observed nodes
 
 ## Mock ResizeObserver
 
-Mocks `ResizeObserver` class. Resize callbacks are triggered manually using `resize` method returned by the mock. Elements' size must be not 0 for the element to appear in the list of callback entries (you can mock the size using [`mockElementSize`](#mockelementsizeelement-htmlelement-size-size) or `mockElementBoundingClientRect`)
+Mocks `ResizeObserver` class. Resize callbacks are triggered manually using `resize` method returned by the mock. Elements' size must not be 0 (at least on one axis) for the element to appear in the list of callback entries (you can mock the size using [`mockElementSize`](#mockelementsizeelement-htmlelement-size-size) or `mockElementBoundingClientRect`)
 
 Example, using `React Testing Library`:
 
@@ -276,6 +276,11 @@ Example:
 mockElementSize(myDiv, {
   // both contentBoxSize and borderBoxSize accept plain objects instead of arrays
   contentBoxSize: { inlineSize: 400, blockSize: 200 },
+});
+
+mockElementSize(myOtherDiv, {
+  // only one dimension is required, the other one will be assumed to be 0
+  borderBoxSize: { inlineSize: 200 },
 });
 ```
 

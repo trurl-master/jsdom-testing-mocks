@@ -271,7 +271,74 @@ describe('mockResizeObserver', () => {
       ]);
     });
 
-    test('I can remock the size', () => {
+    it('should be possible to omit either inlineSize or blockSize', async () => {
+      const callback = jest.fn();
+      const { result } = renderHook(() =>
+        useResizeObserver(useMemo(() => ({ callback }), []))
+      );
+
+      if (!result.current) {
+        return;
+      }
+
+      const element = document.createElement('div');
+
+      result.current.observe(element);
+
+      mockElementSize(element, { contentBoxSize: { inlineSize: 400 } });
+
+      act(() => {
+        resize();
+      });
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith([
+        {
+          target: element,
+          borderBoxSize: [{ inlineSize: 400, blockSize: 0 }],
+          contentBoxSize: [{ inlineSize: 400, blockSize: 0 }],
+          contentRect: expect.objectContaining({
+            x: 0,
+            y: 0,
+            width: 400,
+            height: 0,
+            top: 0,
+            right: 400,
+            bottom: 0,
+            left: 0,
+          }),
+          devicePixelContentBoxSize: [{ inlineSize: 400, blockSize: 0 }],
+        },
+      ]);
+
+      mockElementSize(element, { contentBoxSize: { blockSize: 200 } });
+
+      act(() => {
+        resize(element);
+      });
+
+      expect(callback).toHaveBeenCalledTimes(2);
+      expect(callback).toHaveBeenCalledWith([
+        {
+          target: element,
+          borderBoxSize: [{ inlineSize: 0, blockSize: 200 }],
+          contentBoxSize: [{ inlineSize: 0, blockSize: 200 }],
+          contentRect: expect.objectContaining({
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 200,
+            top: 0,
+            right: 0,
+            bottom: 200,
+            left: 0,
+          }),
+          devicePixelContentBoxSize: [{ inlineSize: 0, blockSize: 200 }],
+        },
+      ]);
+    });
+
+    test('Remocking the size', () => {
       const callback = jest.fn();
       const { result } = renderHook(() =>
         useResizeObserver(useMemo(() => ({ callback }), []))
