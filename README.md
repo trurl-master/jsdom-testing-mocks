@@ -238,7 +238,7 @@ Although the mock doesn't call the resize callback on its own, it keeps track of
 
 #### Mocking element's size
 
-The mock uses the size provided by `mockElementSize` if present and fallbacks to `getBoundingClientRect` (that you can mock using `mockElementBoundingClientRect`). The issue with `getBoundingClientRect` however is that in the real world the value it returns takes CSS Transforms into account, while the values returned in the observer's callback don't. It doesn't really matter because it is you who mocks sizes, but for consistency it is preferred that you use `mockElementSize`
+The mock uses the size provided by `mockElementSize` if present and fallbacks to `getBoundingClientRect` (that you can mock using `mockElementBoundingClientRect`). The issue with `getBoundingClientRect` however is that in the real world the value it returns takes CSS Transforms into account, while the values returned in the observer callback don't. It doesn't really matter because it is you who mocks sizes, but for consistency it is preferred that you use `mockElementSize`
 
 ### API
 
