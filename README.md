@@ -379,7 +379,7 @@ It's perfectly usable with fake timers, except for the [issue with promises](htt
 [npmtrends]: http://www.npmtrends.com/jsdom-testing-mocks
 [license-badge]: https://img.shields.io/npm/l/jsdom-testing-mocks.svg?style=flat-square
 [license]: https://github.com/trurl-master/jsdom-testing-mocks/blob/master/LICENSE
-[build-status-badge]: https://img.shields.io/github/workflow/status/trurl-master/jsdom-testing-mocks/CI?style=flat-square
+[build-status-badge]: https://img.shields.io/github/actions/workflow/status/trurl-master/jsdom-testing-mocks/main.yml?branch=master&style=flat-square
 [build-status]: https://github.com/trurl-master/jsdom-testing-mocks/actions/workflows/main.yml
 [prs-badge]: https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square
 [prs]: http://makeapullrequest.com
