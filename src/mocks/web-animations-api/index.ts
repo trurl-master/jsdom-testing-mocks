@@ -2,14 +2,29 @@ import { mockAnimation } from './Animation';
 
 const elementAnimations = new Map<Element, Animation[]>();
 
+function removeFromAnimations(element: Element, animation: Animation) {
+  const animations = elementAnimations.get(element);
+
+  if (animations) {
+    const index = animations.indexOf(animation);
+
+    if (index !== -1) {
+      animations.splice(index, 1);
+    }
+  }
+}
+
 function animate(
   this: Element,
   keyframes: Keyframe[],
-  options?: number | KeyframeEffectOptions
+  options?: number | KeyframeAnimationOptions
 ) {
   const keyframeEffect = new KeyframeEffect(this, keyframes, options);
 
   const animation = new Animation(keyframeEffect);
+  if (typeof options == 'object' && options.id) {
+    animation.id = options.id;
+  }
 
   const animations = elementAnimations.get(this) ?? [];
 
@@ -17,17 +32,12 @@ function animate(
 
   elementAnimations.set(this, animations);
 
-  animation.addEventListener('finish', () => {
-    const animations = elementAnimations.get(this);
-
-    if (animations) {
-      const index = animations.indexOf(animation);
-
-      if (index !== -1) {
-        animations.splice(index, 1);
-      }
-    }
-  });
+  animation.addEventListener('finish', () =>
+    removeFromAnimations(this, animation)
+  );
+  animation.addEventListener('cancel', () =>
+    removeFromAnimations(this, animation)
+  );
 
   animation.play();
 

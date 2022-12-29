@@ -35,4 +35,22 @@ describe('Animations API', () => {
     expect(element.getAnimations().length).toBe(0);
     expect(document.getAnimations().length).toBe(0);
   });
+
+  it('should read id from options and attach it to the returned animation', async () => {
+    const element = document.createElement('div');
+    const testId = 'testId';
+
+    const animation = element.animate({ opacity: 0 }, { id: testId });
+    expect(animation.id).toBe(testId);
+  });
+
+  it('should remove an animation from element if the animation was cancelled', () => {
+    const element = document.createElement('div');
+
+    const animation = element.animate({ opacity: 0 }, 1000);
+    expect(element.getAnimations().length).toBe(1);
+
+    animation.cancel();
+    expect(element.getAnimations().length).toBe(0);
+  });
 });
