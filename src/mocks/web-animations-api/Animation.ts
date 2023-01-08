@@ -2,6 +2,7 @@ import { mockKeyframeEffect } from './KeyframeEffect';
 import { mockAnimationPlaybackEvent } from './AnimationPlaybackEvent';
 import { mockDocumentTimeline } from './DocumentTimeline';
 import { getEasingFunctionFromString } from './easingFunctions';
+import { addAnimation, removeAnimation } from './elementAnimations';
 
 type ActiveAnimationTimeline = AnimationTimeline & {
   currentTime: NonNullable<AnimationTimeline['currentTime']>;
@@ -136,15 +137,33 @@ class MockedAnimation extends EventTarget implements Animation {
     return null;
   }
 
+  #addToTarget() {
+    if (!this.#hasKeyframeEffect() || this.effect.target == null) {
+      return;
+    }
+
+    addAnimation(this.effect.target, this);
+  }
+
+  #removeFromTarget() {
+    if (!this.#hasKeyframeEffect() || this.effect.target == null) {
+      return;
+    }
+
+    removeAnimation(this.effect.target, this);
+  }
+
   #getNewFinishedPromise() {
     this.#promiseStates.finished = 'pending';
 
     return new Promise<Animation>((resolve, reject) => {
       this.#resolvers.finished.resolve = (animation) => {
+        this.#removeFromTarget();
         this.#promiseStates.finished = 'resolved';
         resolve(animation);
       };
       this.#resolvers.finished.reject = (error) => {
+        this.#removeFromTarget();
         this.#promiseStates.finished = 'rejected';
         reject(error);
       };
@@ -153,6 +172,7 @@ class MockedAnimation extends EventTarget implements Animation {
 
   #getNewReadyPromise() {
     this.#promiseStates.ready = 'pending';
+    this.#addToTarget();
 
     return new Promise<Animation>((resolve, reject) => {
       this.#resolvers.ready.resolve = (animation) => {
