@@ -44,8 +44,6 @@ describe('Animation', () => {
         // -> active |
         jest.advanceTimersByTime(DURATION - 1);
 
-        // console.log('-> active |', animation.currentTime, performance.now());
-
         expect(element.style.transform).toBe('translateX(100px)');
 
         // | finished
