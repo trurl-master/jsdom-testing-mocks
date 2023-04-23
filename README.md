@@ -368,7 +368,6 @@ It's perfectly usable with fake timers, except for the [issue with promises](htt
 
 ### Current issues
 
-- No support for `steps` easings
 - Needs more tests
 
 <!-- prettier-ignore-start -->
