@@ -1,15 +1,21 @@
 import { render, act, screen } from '@testing-library/react';
 
-import { mockViewport, mockViewportForTestGroup } from '../../../dist';
+import {
+  mockViewport,
+  mockViewportForTestGroup,
+  configMocks,
+} from '../../../../dist';
 
-import CustomUseMedia from '../components/viewport/custom-use-media/CustomUseMedia';
-import DeprecatedUseMedia from '../components/viewport/deprecated-use-media/DeprecatedUseMedia';
+import CustomUseMedia from './custom-use-media/CustomUseMedia';
+import DeprecatedUseMedia from './deprecated-use-media/DeprecatedUseMedia';
 
 const VIEWPORT_DESKTOP = { width: '1440px', height: '900px' };
 const VIEWPORT_DESKTOP_EDGE = { width: '640px', height: '400px' };
 
 const VIEWPORT_MOBILE = { width: '320px', height: '568px' };
 const VIEWPORT_MOBILE_EDGE = { width: '639px', height: '400px' };
+
+configMocks({ act });
 
 describe('mockViewport', () => {
   describe('It renders correctly on server, desktop and mobile', () => {
@@ -47,9 +53,7 @@ describe('mockViewport', () => {
       expect(screen.getByText('desktop')).toBeInTheDocument();
       expect(screen.queryByText('not desktop')).not.toBeInTheDocument();
 
-      act(() => {
-        viewport.set(VIEWPORT_MOBILE);
-      });
+      viewport.set(VIEWPORT_MOBILE);
 
       expect(screen.getByText('not desktop')).toBeInTheDocument();
       expect(screen.queryByText('desktop')).not.toBeInTheDocument();
@@ -59,7 +63,7 @@ describe('mockViewport', () => {
 
     it('changing viewport description triggers deprecated callbacks', () => {
       const viewport = mockViewport(VIEWPORT_DESKTOP);
-      const cb = jest.fn();
+      const cb = runner.fn();
 
       render(<DeprecatedUseMedia callback={cb} />);
 
@@ -67,9 +71,7 @@ describe('mockViewport', () => {
       expect(screen.queryByText('not desktop')).not.toBeInTheDocument();
       expect(cb).toHaveBeenCalledTimes(0);
 
-      act(() => {
-        viewport.set(VIEWPORT_MOBILE);
-      });
+      viewport.set(VIEWPORT_MOBILE);
 
       const [event] = cb.mock.calls[0];
 
@@ -85,7 +87,7 @@ describe('mockViewport', () => {
 
     it('changing viewport description triggers callbacks with correct params', () => {
       const viewport = mockViewport(VIEWPORT_DESKTOP);
-      const cb = jest.fn();
+      const cb = runner.fn();
 
       render(<CustomUseMedia callback={cb} />);
 
@@ -93,9 +95,7 @@ describe('mockViewport', () => {
       expect(screen.queryByText('not desktop')).not.toBeInTheDocument();
       expect(cb).toHaveBeenCalledTimes(0);
 
-      act(() => {
-        viewport.set(VIEWPORT_MOBILE);
-      });
+      viewport.set(VIEWPORT_MOBILE);
 
       const [event] = cb.mock.calls[0];
 
@@ -109,7 +109,7 @@ describe('mockViewport', () => {
 
     it('changing viewport description triggers callbacks (passed as object) with correct params', () => {
       const viewport = mockViewport(VIEWPORT_DESKTOP);
-      const cb = jest.fn();
+      const cb = runner.fn();
 
       render(<CustomUseMedia callback={cb} asObject />);
 
@@ -117,9 +117,7 @@ describe('mockViewport', () => {
       expect(screen.queryByText('not desktop')).not.toBeInTheDocument();
       expect(cb).toHaveBeenCalledTimes(0);
 
-      act(() => {
-        viewport.set(VIEWPORT_MOBILE);
-      });
+      viewport.set(VIEWPORT_MOBILE);
 
       const [event] = cb.mock.calls[0];
 
@@ -133,7 +131,7 @@ describe('mockViewport', () => {
 
     it('triggers callbacks only when state actually changes', () => {
       const viewport = mockViewport(VIEWPORT_DESKTOP);
-      const cb = jest.fn();
+      const cb = runner.fn();
 
       render(<CustomUseMedia callback={cb} />);
 
@@ -141,25 +139,19 @@ describe('mockViewport', () => {
       expect(screen.queryByText('not desktop')).not.toBeInTheDocument();
       expect(cb).toHaveBeenCalledTimes(0);
 
-      act(() => {
-        viewport.set(VIEWPORT_DESKTOP_EDGE);
-      });
+      viewport.set(VIEWPORT_DESKTOP_EDGE);
 
       expect(screen.getByText('desktop')).toBeInTheDocument();
       expect(screen.queryByText('not desktop')).not.toBeInTheDocument();
       expect(cb).toHaveBeenCalledTimes(0);
 
-      act(() => {
-        viewport.set(VIEWPORT_MOBILE_EDGE);
-      });
+      viewport.set(VIEWPORT_MOBILE_EDGE);
 
       expect(screen.getByText('not desktop')).toBeInTheDocument();
       expect(screen.queryByText('desktop')).not.toBeInTheDocument();
       expect(cb).toHaveBeenCalledTimes(1);
 
-      act(() => {
-        viewport.set(VIEWPORT_MOBILE);
-      });
+      viewport.set(VIEWPORT_MOBILE);
 
       expect(screen.getByText('not desktop')).toBeInTheDocument();
       expect(screen.queryByText('desktop')).not.toBeInTheDocument();
@@ -170,8 +162,8 @@ describe('mockViewport', () => {
 
     it('works with multiple lists', () => {
       const viewport = mockViewport({ width: '600px' });
-      const cb1 = jest.fn();
-      const cb2 = jest.fn();
+      const cb1 = runner.fn();
+      const cb2 = runner.fn();
 
       render(
         <>
@@ -193,45 +185,35 @@ describe('mockViewport', () => {
       expect(cb1).toHaveBeenCalledTimes(0);
       expect(cb2).toHaveBeenCalledTimes(0);
 
-      act(() => {
-        viewport.set({ width: '500px' });
-      });
+      viewport.set({ width: '500px' });
 
       expect(screen.getByText('>=300px')).toBeInTheDocument();
       expect(screen.getByText('>=500px')).toBeInTheDocument();
       expect(cb1).toHaveBeenCalledTimes(0);
       expect(cb2).toHaveBeenCalledTimes(0);
 
-      act(() => {
-        viewport.set({ width: '499px' });
-      });
+      viewport.set({ width: '499px' });
 
       expect(screen.getByText('>=300px')).toBeInTheDocument();
       expect(screen.getByText('<500px')).toBeInTheDocument();
       expect(cb1).toHaveBeenCalledTimes(0);
       expect(cb2).toHaveBeenCalledTimes(1);
 
-      act(() => {
-        viewport.set({ width: '300px' });
-      });
+      viewport.set({ width: '300px' });
 
       expect(screen.getByText('>=300px')).toBeInTheDocument();
       expect(screen.getByText('<500px')).toBeInTheDocument();
       expect(cb1).toHaveBeenCalledTimes(0);
       expect(cb2).toHaveBeenCalledTimes(1);
 
-      act(() => {
-        viewport.set({ width: '299px' });
-      });
+      viewport.set({ width: '299px' });
 
       expect(screen.getByText('<300px')).toBeInTheDocument();
       expect(screen.getByText('<500px')).toBeInTheDocument();
       expect(cb1).toHaveBeenCalledTimes(1);
       expect(cb2).toHaveBeenCalledTimes(1);
 
-      act(() => {
-        viewport.set({ width: '600px' });
-      });
+      viewport.set({ width: '600px' });
 
       expect(screen.getByText('>=300px')).toBeInTheDocument();
       expect(screen.getByText('>=500px')).toBeInTheDocument();

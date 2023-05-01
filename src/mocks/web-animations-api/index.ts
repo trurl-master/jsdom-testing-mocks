@@ -4,6 +4,9 @@ import {
   getAllAnimations,
   clearAnimations,
 } from './elementAnimations';
+import { getConfig } from '../../tools';
+
+const config = getConfig();
 
 function animate(
   this: Element,
@@ -48,11 +51,11 @@ function mockAnimationsApi() {
     value: getAllAnimations,
   });
 
-  afterEach(() => {
+  config.afterEach(() => {
     clearAnimations();
   });
 
-  afterAll(() => {
+  config.afterAll(() => {
     Element.prototype.animate = savedAnimate;
     Element.prototype.getAnimations = savedGetAnimations;
     Document.prototype.getAnimations = savedGetAllAnimations;

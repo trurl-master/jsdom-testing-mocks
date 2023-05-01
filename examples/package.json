@@ -8,21 +8,21 @@
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
     "@types/node": "^16.11.43",
-    "@types/react": "^18.0.14",
-    "@types/react-dom": "^18.0.5",
-    "motion": "^10.13.1",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.1",
+    "motion": "^10.15.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.3.0",
     "react-scripts": "5.0.1",
-    "typescript": "^4.7.4",
-    "web-vitals": "^2.1.4"
+    "typescript": "^4.7.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test": "react-scripts test --watchAll=false",
+    "eject": "react-scripts eject",
+    "vitest": "vitest --config ./vitest.config.ts run"
   },
   "eslintConfig": {
     "extends": [
@@ -43,7 +43,9 @@
     ]
   },
   "devDependencies": {
-    "identity-obj-proxy": "^3.0.0"
+    "@vitejs/plugin-react": "^4.0.0",
+    "identity-obj-proxy": "^3.0.0",
+    "vitest": "^0.30.1"
   },
   "jest": {
     "moduleNameMapper": {

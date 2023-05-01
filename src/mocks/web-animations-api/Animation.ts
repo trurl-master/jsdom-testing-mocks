@@ -3,6 +3,7 @@ import { mockAnimationPlaybackEvent } from './AnimationPlaybackEvent';
 import { mockDocumentTimeline } from './DocumentTimeline';
 import { getEasingFunctionFromString } from './easingFunctions';
 import { addAnimation, removeAnimation } from './elementAnimations';
+import { getConfig } from '../../tools';
 
 type ActiveAnimationTimeline = AnimationTimeline & {
   currentTime: NonNullable<AnimationTimeline['currentTime']>;
@@ -30,6 +31,7 @@ type DefinedComputedEffectTiming = Required<
   duration: number;
 };
 
+const config = getConfig();
 export const NON_STYLE_KEYFRAME_PROPERTIES = ['offset', 'composite', 'easing'];
 export const RENAMED_KEYFRAME_PROPERTIES: {
   [key: string]: string;
@@ -976,8 +978,16 @@ class MockedAnimation extends EventTarget implements Animation {
     // 7. If animation has a document for timing, then append finishEvent to its document for timing's pending animation event queue along with its target, animation. For the scheduled event time, use the result of converting animation’s associated effect end to an origin-relative time.
     //    Otherwise, queue a task to dispatch finishEvent at animation. The task source for this task is the DOM manipulation task source.
 
-    this.dispatchEvent(finishEvent);
-    this.onfinish?.(finishEvent);
+    const triggerFinish = () => {
+      this.dispatchEvent(finishEvent);
+      this.onfinish?.(finishEvent);
+    };
+
+    if (config.act) {
+      config.act(triggerFinish);
+    } else {
+      triggerFinish();
+    }
   }
 
   #queuedFinishNotificationMicrotask: (() => void) | null = null;
@@ -1195,8 +1205,17 @@ class MockedAnimation extends EventTarget implements Animation {
       // If animation has a document for timing, then append cancelEvent to its document for timing's pending animation event queue along with its target, animation. If animation is associated with an active timeline that defines a procedure to convert timeline times to origin-relative time, let the scheduled event time be the result of applying that procedure to timeline time. Otherwise, the scheduled event time is an unresolved time value.
 
       // Otherwise, queue a task to dispatch cancelEvent at animation. The task source for this task is the DOM manipulation task source.
-      this.dispatchEvent(cancelEvent);
-      this.oncancel?.(cancelEvent);
+
+      const triggerCancel = () => {
+        this.dispatchEvent(cancelEvent);
+        this.oncancel?.(cancelEvent);
+      };
+
+      if (config.act) {
+        config.act(triggerCancel);
+      } else {
+        triggerCancel();
+      }
     } else {
       // it's not in the spec, but chrome does it
       this.#pendingPlaybackRate = null;

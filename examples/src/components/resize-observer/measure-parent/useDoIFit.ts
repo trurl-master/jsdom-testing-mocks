@@ -10,8 +10,8 @@ const useDoIFit = (ref: React.RefObject<HTMLElement>) => {
 
     const parentElement = ref.current.parentElement;
 
-    const observer = new ResizeObserver((entries) => {
-      const { width, height } = entries[0].contentRect;
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
       const childElement = parentElement.children[0] as HTMLElement;
       const { width: childWidth, height: childHeight } =
         childElement.getBoundingClientRect();
