@@ -4,13 +4,16 @@ import { useMemo } from 'react';
 import {
   mockResizeObserver,
   mockElementBoundingClientRect,
-} from '../../../dist';
+  configMocks,
+} from '../../../../dist';
 
-import MeasureParent from '../components/resize-observer/measure-parent/MeasureParent';
-import PrintMySize from '../components/resize-observer/print-my-size/PrintMySize';
-import useResizeObserver from '../components/resize-observer/useResizeObserver';
+import MeasureParent from './measure-parent/MeasureParent';
+import PrintMySize from './print-my-size/PrintMySize';
+import useResizeObserver from './useResizeObserver';
 
 const { resize, mockElementSize } = mockResizeObserver();
+
+configMocks({ act });
 
 describe('mockResizeObserver', () => {
   describe('MeasureParent', () => {
@@ -40,9 +43,7 @@ describe('mockResizeObserver', () => {
         contentBoxSize: [{ inlineSize: 400, blockSize: 200 }],
       });
 
-      act(() => {
-        resize();
-      });
+      resize();
 
       expect(
         screen.getAllByTestId('result').map((node) => node.textContent)
@@ -58,9 +59,7 @@ describe('mockResizeObserver', () => {
         contentBoxSize: [{ inlineSize: 600, blockSize: 400 }],
       });
 
-      act(() => {
-        resize([parent1, parent2]);
-      });
+      resize([parent1, parent2]);
 
       expect(
         screen.getAllByTestId('result').map((node) => node.textContent)
@@ -81,9 +80,7 @@ describe('mockResizeObserver', () => {
       mockElementBoundingClientRect(elements[0], { width: 400, height: 200 });
       mockElementBoundingClientRect(elements[2], { width: 100, height: 200 });
 
-      act(() => {
-        resize();
-      });
+      resize();
 
       expect(
         screen.getAllByTestId('element').map((node) => node.textContent)
@@ -93,7 +90,7 @@ describe('mockResizeObserver', () => {
 
   describe('useResizeObserver', () => {
     it("shouldn't fire the callback if size isn't mocked", async () => {
-      const callback = jest.fn();
+      const callback = runner.fn();
       const { result } = renderHook(() =>
         useResizeObserver(useMemo(() => ({ callback }), []))
       );
@@ -110,15 +107,13 @@ describe('mockResizeObserver', () => {
       result.current.observe(element);
       result.current.observe(element2);
 
-      act(() => {
-        resize();
-      });
+      resize();
 
       expect(callback).toHaveBeenCalledTimes(0);
     });
 
     it("shouldn't fire the callback if size is 0", async () => {
-      const callback = jest.fn();
+      const callback = runner.fn();
       const { result } = renderHook(() =>
         useResizeObserver(useMemo(() => ({ callback }), []))
       );
@@ -143,15 +138,13 @@ describe('mockResizeObserver', () => {
         contentBoxSize: [{ inlineSize: 0, blockSize: 0 }],
       });
 
-      act(() => {
-        resize();
-      });
+      resize();
 
       expect(callback).toHaveBeenCalledTimes(0);
     });
 
     it('should fire the callback once if size is mocked', async () => {
-      const callback = jest.fn();
+      const callback = runner.fn();
       const { result } = renderHook(() =>
         useResizeObserver(useMemo(() => ({ callback }), []))
       );
@@ -176,15 +169,13 @@ describe('mockResizeObserver', () => {
         contentBoxSize: [{ inlineSize: 100, blockSize: 200 }],
       });
 
-      act(() => {
-        resize();
-      });
+      resize();
 
       expect(callback).toHaveBeenCalledTimes(1);
     });
 
     test('mockElementSize accepts arrays for borderBoxSize and contentBoxSize', () => {
-      const callback = jest.fn();
+      const callback = runner.fn();
       const { result } = renderHook(() =>
         useResizeObserver(useMemo(() => ({ callback }), []))
       );
@@ -202,9 +193,7 @@ describe('mockResizeObserver', () => {
         contentBoxSize: [{ inlineSize: 400, blockSize: 200 }],
       });
 
-      act(() => {
-        resize();
-      });
+      resize();
 
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith([
@@ -228,7 +217,7 @@ describe('mockResizeObserver', () => {
     });
 
     test('mockElementSize also accepts a plain object for borderBoxSize and contentBoxSize', async () => {
-      const callback = jest.fn();
+      const callback = runner.fn();
       const { result } = renderHook(() =>
         useResizeObserver(useMemo(() => ({ callback }), []))
       );
@@ -246,9 +235,7 @@ describe('mockResizeObserver', () => {
         contentBoxSize: { inlineSize: 400, blockSize: 200 },
       });
 
-      act(() => {
-        resize();
-      });
+      resize();
 
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith([
@@ -272,7 +259,7 @@ describe('mockResizeObserver', () => {
     });
 
     it('should be possible to omit either inlineSize or blockSize', async () => {
-      const callback = jest.fn();
+      const callback = runner.fn();
       const { result } = renderHook(() =>
         useResizeObserver(useMemo(() => ({ callback }), []))
       );
@@ -287,9 +274,7 @@ describe('mockResizeObserver', () => {
 
       mockElementSize(element, { contentBoxSize: { inlineSize: 400 } });
 
-      act(() => {
-        resize();
-      });
+      resize();
 
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith([
@@ -313,9 +298,7 @@ describe('mockResizeObserver', () => {
 
       mockElementSize(element, { contentBoxSize: { blockSize: 200 } });
 
-      act(() => {
-        resize(element);
-      });
+      resize(element);
 
       expect(callback).toHaveBeenCalledTimes(2);
       expect(callback).toHaveBeenCalledWith([
@@ -339,7 +322,7 @@ describe('mockResizeObserver', () => {
     });
 
     test('Remocking the size', () => {
-      const callback = jest.fn();
+      const callback = runner.fn();
       const { result } = renderHook(() =>
         useResizeObserver(useMemo(() => ({ callback }), []))
       );
@@ -356,9 +339,7 @@ describe('mockResizeObserver', () => {
         contentBoxSize: { inlineSize: 400, blockSize: 200 },
       });
 
-      act(() => {
-        resize();
-      });
+      resize();
 
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith([
@@ -384,9 +365,7 @@ describe('mockResizeObserver', () => {
         contentBoxSize: { inlineSize: 500, blockSize: 300 },
       });
 
-      act(() => {
-        resize(element);
-      });
+      resize(element);
 
       expect(callback).toHaveBeenCalledTimes(2);
       expect(callback).toHaveBeenCalledWith([

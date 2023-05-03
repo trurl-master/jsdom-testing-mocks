@@ -1,6 +1,8 @@
 import mediaQuery, { MediaValues } from 'css-mediaquery';
 import './MediaQueryListEvent';
-import { MockedMediaQueryListEvent } from './MediaQueryListEvent';
+import { getConfig } from '../tools';
+
+const config = getConfig();
 
 /**
  * A tool that allows testing components that use js media queries (matchMedia)
@@ -31,9 +33,9 @@ export type MockViewport = {
   set: (newDesc: ViewportDescription) => void;
 };
 
-type Listener = (this: MediaQueryList, ev: MockedMediaQueryListEvent) => void;
+type Listener = (this: MediaQueryList, ev: MediaQueryListEvent) => void;
 type ListenerObject = {
-  handleEvent: (ev: MockedMediaQueryListEvent) => void;
+  handleEvent: (ev: MediaQueryListEvent) => void;
 };
 type ListenerOrListenerObject = Listener | ListenerObject;
 
@@ -134,7 +136,23 @@ function mockViewport(desc: ViewportDescription): MockViewport {
           }
         }
       },
-      dispatchEvent: jest.fn(),
+      dispatchEvent: (event: Event) => {
+        if (event.type === 'change') {
+          state.listeners.forEach(({ listener, list }) => {
+            if (isEventListenerObject(listener)) {
+              listener.handleEvent(event as MediaQueryListEvent);
+            } else {
+              listener.call(list, event as MediaQueryListEvent);
+            }
+          });
+
+          state.oldListeners.forEach(({ listener, list }) => {
+            listener.call(list, event as MediaQueryListEvent);
+          });
+        }
+
+        return true;
+      },
     }),
   });
 
@@ -143,42 +161,46 @@ function mockViewport(desc: ViewportDescription): MockViewport {
       window.matchMedia = savedImplementation;
     },
     set: (newDesc: ViewportDescription) => {
-      state.currentDesc = newDesc;
-      state.listeners.forEach(({ listener, matches, list }, listenerIndex) => {
-        const newMatches = list.matches;
+      config.act(() => {
+        state.currentDesc = newDesc;
+        state.listeners.forEach(
+          ({ listener, matches, list }, listenerIndex) => {
+            const newMatches = list.matches;
 
-        if (newMatches !== matches) {
-          const changeEvent = new MediaQueryListEvent('change', {
-            matches: newMatches,
-            media: list.media,
-          });
+            if (newMatches !== matches) {
+              const changeEvent = new MediaQueryListEvent('change', {
+                matches: newMatches,
+                media: list.media,
+              });
 
-          if (isEventListenerObject(listener)) {
-            listener.handleEvent(changeEvent);
-          } else {
-            listener.call(list, changeEvent);
+              if (isEventListenerObject(listener)) {
+                listener.handleEvent(changeEvent);
+              } else {
+                listener.call(list, changeEvent);
+              }
+
+              state.listeners[listenerIndex].matches = newMatches;
+            }
           }
+        );
 
-          state.listeners[listenerIndex].matches = newMatches;
-        }
+        state.oldListeners.forEach(
+          ({ listener, matches, list }, listenerIndex) => {
+            const newMatches = list.matches;
+
+            if (newMatches !== matches) {
+              const changeEvent = new MediaQueryListEvent('change', {
+                matches: newMatches,
+                media: list.media,
+              });
+
+              listener.call(list, changeEvent);
+
+              state.oldListeners[listenerIndex].matches = newMatches;
+            }
+          }
+        );
       });
-
-      state.oldListeners.forEach(
-        ({ listener, matches, list }, listenerIndex) => {
-          const newMatches = list.matches;
-
-          if (newMatches !== matches) {
-            const changeEvent = new MediaQueryListEvent('change', {
-              matches: newMatches,
-              media: list.media,
-            });
-
-            listener.call(list, changeEvent);
-
-            state.oldListeners[listenerIndex].matches = newMatches;
-          }
-        }
-      );
     },
   };
 }
@@ -186,11 +208,11 @@ function mockViewport(desc: ViewportDescription): MockViewport {
 function mockViewportForTestGroup(desc: ViewportDescription) {
   let viewport: MockViewport;
 
-  beforeAll(() => {
+  config.beforeAll(() => {
     viewport = mockViewport(desc);
   });
 
-  afterAll(() => {
+  config.afterAll(() => {
     viewport.cleanup();
   });
 }

@@ -14,24 +14,68 @@ A set of tools for emulating browser behavior in jsdom environment
 
 [![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://stand-with-ukraine.pp.ua)
 
+### Mocks
+
+[matchMedia](#mock-viewport)  
+[Intersection Observer](#mock-intersectionobserver)  
+[Resize Observer](#mock-resizeobserver)  
+[Web Animations API](#mock-web-animations-api)
+
 ## Installation
 
 ```sh
 npm i -D jsdom-testing-mocks
 ```
 
-or
-
 ```sh
 yarn add -D jsdom-testing-mocks
 ```
 
-## Mocks
+## Setup
 
-[matchMedia](#mock-viewport),
-[Intersection Observer](#mock-intersectionobserver),
-[Resize Observer](#mock-resizeobserver),
-[Web Animations API](#mock-web-animations-api)
+### With `react`
+
+To avoid having to wrap everything in `act` calls, you can pass `act` to `configMocks`:
+
+```jsx
+import { configMocks } from 'jsdom-testing-mocks';
+import { act } from '...';
+
+configMocks({ act });
+```
+
+It can be done in a setup file, or in a test file, before rendering the component.
+
+### With `vitest`
+
+Some mocks require lifecycle hooks to be defined on the global object. To make it work with vitest, you need to [enable globals in your config](https://vitest.dev/config/#globals). If you don't want to do that you can pass it manually using `configMocks`.
+
+Also, if you're using fake timers, at the time of writing this, vitest doesn't enable faking `performance.now`, `requestAnimationFrame` and `cancelAnimationFrame` by default, so you need to do it manually:
+
+```js
+vi.useFakeTimers({
+  toFake: [
+    // vitests defaults
+    'setTimeout',
+    'clearTimeout',
+    'setInterval',
+    'clearInterval',
+    'setImmediate',
+    'clearImmediate',
+    'Date',
+    // required for mocks
+    'performance',
+    'requestAnimationFrame',
+    'cancelAnimationFrame',
+  ],
+});
+```
+
+[vitest defaults](https://github.com/vitest-dev/vitest/blob/190c25f902a8c32859c9f62407040dedf5a72cb9/packages/vitest/src/defaults.ts)
+
+## Testing framework support
+
+We aim to support all major testing frameworks that support jsdom. Internally, there are no dependencies on any of them, so it's likely that it will work out of the box. Currently tested and confirmed to work with [jest](https://jestjs.io/) and [vitest](https://vitest.dev/). If you encounter any problems with other testing frameworks, please open an issue.
 
 ## Mock viewport
 
@@ -362,11 +406,11 @@ it('adds an element into the dom and fades it in', async () => {
 });
 ```
 
-### Using with fake timers
+## Using with fake timers
 
 It's perfectly usable with fake timers, except for the [issue with promises](https://github.com/facebook/jest/issues/2157). Also note that you would need to manually advance timers by the duration of the animation taking frame duration (which currently is set to 16ms in `jest`/`sinon.js`) into account. So if you, say, have an animation with a duration of `300ms`, you will need to advance your timers by the value that is at least the closest multiple of the frame duration, which in this case is `304ms` (`19` frames \* `16ms`). Otherwise the last frame may not fire and the animation won't finish.
 
-### Current issues
+## Current issues
 
 - Needs more tests
 
@@ -388,6 +432,5 @@ It's perfectly usable with fake timers, except for the [issue with promises](htt
 [star]: https://github.com/trurl-master/jsdom-testing-mocks/stargazers
 [twitter-badge]: https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Ftrurl-master%2Fjsdom-testing-mocks
 [twitter]: https://twitter.com/intent/tweet?text=Check%20out%20jsdom-testing-mocks%20by%20@ivangaliatin%20https%3A%2F%2Fgithub.com%2Ftrurl-master%2Fjsdom-testing-mocks
-
 
 <!-- prettier-ignore-end -->

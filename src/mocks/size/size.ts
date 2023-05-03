@@ -11,9 +11,8 @@ export const mockElementBoundingClientRect = (
 ) => {
   const savedImplementation = element.getBoundingClientRect;
 
-  element.getBoundingClientRect = jest.fn(
-    () => new DOMRectReadOnly(x, y, width, height)
-  );
+  element.getBoundingClientRect = () =>
+    new DOMRectReadOnly(x, y, width, height);
 
   return savedImplementation;
 };

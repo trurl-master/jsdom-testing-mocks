@@ -4,18 +4,18 @@ import {
   playAnimationInReverse,
   updateAnimationPlaybackRate,
   FRAME_DURATION,
-} from '../testTools';
+} from '../../testTools';
 import { mockAnimationsApi } from '../index';
 
 mockAnimationsApi();
 
-jest.useFakeTimers();
+runner.useFakeTimers();
 
 describe('Animation', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     const syncShift = FRAME_DURATION - (performance.now() % FRAME_DURATION);
 
-    jest.advanceTimersByTime(syncShift);
+    await runner.advanceTimersByTime(syncShift);
   });
 
   describe('reverse', () => {
@@ -43,7 +43,7 @@ describe('Animation', () => {
         expect(element.style.transform).toBe('translateX(50px)');
 
         // -> half way |
-        jest.advanceTimersByTime(framesToTime(3));
+        await runner.advanceTimersByTime(framesToTime(3));
 
         expect(element.style.transform).toBe('translateX(75px)');
 
@@ -52,11 +52,11 @@ describe('Animation', () => {
 
         await animation.ready;
 
-        jest.advanceTimersByTime(framesToTime(3) - 1);
+        await runner.advanceTimersByTime(framesToTime(3) - 1);
 
         expect(element.style.transform).toBe('translateX(50px)');
 
-        jest.advanceTimersByTime(1);
+        await runner.advanceTimersByTime(1);
 
         await animation.finished;
 
@@ -86,18 +86,18 @@ describe('Animation', () => {
         expect(element.style.transform).toBe('translateX(50px)');
 
         // -> half way |
-        jest.advanceTimersByTime(framesToTime(3));
+        await runner.advanceTimersByTime(framesToTime(3));
 
         expect(element.style.transform).toBe('translateX(75px)');
 
         // half way -> back to start |
         animation.playbackRate = -animation.playbackRate;
 
-        jest.advanceTimersByTime(framesToTime(3) - 1);
+        await runner.advanceTimersByTime(framesToTime(3) - 1);
 
         expect(element.style.transform).toBe('translateX(50px)');
 
-        jest.advanceTimersByTime(1);
+        await runner.advanceTimersByTime(1);
 
         await animation.finished;
 
@@ -127,18 +127,18 @@ describe('Animation', () => {
         expect(element.style.transform).toBe('translateX(50px)');
 
         // -> half way |
-        jest.advanceTimersByTime(framesToTime(3));
+        await runner.advanceTimersByTime(framesToTime(3));
 
         expect(element.style.transform).toBe('translateX(75px)');
 
         // half way -> back to start |
         await updateAnimationPlaybackRate(animation, -1);
 
-        jest.advanceTimersByTime(framesToTime(3) - 1);
+        await runner.advanceTimersByTime(framesToTime(3) - 1);
 
         expect(element.style.transform).toBe('translateX(50px)');
 
-        jest.advanceTimersByTime(1);
+        await runner.advanceTimersByTime(1);
 
         await animation.finished;
 
@@ -170,18 +170,18 @@ describe('Animation', () => {
         expect(element.style.transform).toBe('translateX(100px)');
 
         // -> half way |
-        jest.advanceTimersByTime(framesToTime(3));
+        await runner.advanceTimersByTime(framesToTime(3));
 
         expect(element.style.transform).toBe('translateX(75px)');
 
         // half way -> back to start |
         await playAnimationInReverse(animation);
 
-        jest.advanceTimersByTime(framesToTime(3) - 1);
+        await runner.advanceTimersByTime(framesToTime(3) - 1);
 
         expect(element.style.transform).toBe('translateX(100px)');
 
-        jest.advanceTimersByTime(1);
+        await runner.advanceTimersByTime(1);
 
         await animation.finished;
 
@@ -211,18 +211,18 @@ describe('Animation', () => {
         expect(element.style.transform).toBe('translateX(100px)');
 
         // -> half way |
-        jest.advanceTimersByTime(framesToTime(3));
+        await runner.advanceTimersByTime(framesToTime(3));
 
         expect(element.style.transform).toBe('translateX(75px)');
 
         // half way -> back to start |
         animation.playbackRate = -animation.playbackRate;
 
-        jest.advanceTimersByTime(framesToTime(3) - 1);
+        await runner.advanceTimersByTime(framesToTime(3) - 1);
 
         expect(element.style.transform).toBe('translateX(100px)');
 
-        jest.advanceTimersByTime(1);
+        await runner.advanceTimersByTime(1);
 
         await animation.finished;
 
@@ -252,18 +252,18 @@ describe('Animation', () => {
         expect(element.style.transform).toBe('translateX(100px)');
 
         // -> half way |
-        jest.advanceTimersByTime(framesToTime(3));
+        await runner.advanceTimersByTime(framesToTime(3));
 
         expect(element.style.transform).toBe('translateX(75px)');
 
         // half way -> back to start |
         await updateAnimationPlaybackRate(animation, 1);
 
-        jest.advanceTimersByTime(framesToTime(3) - 1);
+        await runner.advanceTimersByTime(framesToTime(3) - 1);
 
         expect(element.style.transform).toBe('translateX(100px)');
 
-        jest.advanceTimersByTime(1);
+        await runner.advanceTimersByTime(1);
 
         await animation.finished;
 
