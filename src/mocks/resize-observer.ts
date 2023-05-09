@@ -1,4 +1,7 @@
 import { RequireAtLeastOne } from 'type-fest';
+import { getConfig } from '../tools';
+
+const config = getConfig();
 
 type Sizes = {
   borderBoxSize: ResizeObserverSize[];
@@ -147,11 +150,11 @@ function mockResizeObserver() {
     value: MockedResizeObserver,
   });
 
-  afterEach(() => {
+  config.afterEach(() => {
     resetState();
   });
 
-  afterAll(() => {
+  config.afterAll(() => {
     window.ResizeObserver = savedImplementation;
   });
 
@@ -257,30 +260,32 @@ function mockResizeObserver() {
       elements: HTMLElement | HTMLElement[] = [],
       { ignoreImplicit = false } = {}
     ) => {
-      if (!Array.isArray(elements)) {
-        elements = [elements];
-      }
-
-      for (const observer of state.observers) {
-        const observedSubset = elements.filter((element) =>
-          observer.observationTargets.has(element)
-        );
-
-        const observedSubsetAndActive = new Set([
-          ...observedSubset,
-          ...(ignoreImplicit ? [] : observer.activeTargets),
-        ]);
-
-        observer.activeTargets.clear();
-
-        const entries = Array.from(observedSubsetAndActive)
-          .map(elementToEntry)
-          .filter(Boolean) as ResizeObserverEntry[];
-
-        if (entries.length > 0) {
-          observer.callback(entries, observer);
+      config.act(() => {
+        if (!Array.isArray(elements)) {
+          elements = [elements];
         }
-      }
+
+        for (const observer of state.observers) {
+          const observedSubset = elements.filter((element) =>
+            observer.observationTargets.has(element)
+          );
+
+          const observedSubsetAndActive = new Set([
+            ...observedSubset,
+            ...(ignoreImplicit ? [] : observer.activeTargets),
+          ]);
+
+          observer.activeTargets.clear();
+
+          const entries = Array.from(observedSubsetAndActive)
+            .map(elementToEntry)
+            .filter(Boolean) as ResizeObserverEntry[];
+
+          if (entries.length > 0) {
+            observer.callback(entries, observer);
+          }
+        }
+      });
     },
   };
 }

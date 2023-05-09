@@ -3,7 +3,7 @@ import { mockAnimationsApi } from '../index';
 
 mockAnimationsApi();
 
-jest.useFakeTimers();
+runner.useFakeTimers();
 
 describe('Animation', () => {
   describe('constructor', () => {

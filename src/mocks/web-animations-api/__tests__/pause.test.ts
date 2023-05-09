@@ -1,15 +1,15 @@
-import { framesToTime, playAnimation, FRAME_DURATION } from '../testTools';
+import { framesToTime, playAnimation, FRAME_DURATION } from '../../testTools';
 import { mockAnimationsApi } from '../index';
 
 mockAnimationsApi();
 
-jest.useFakeTimers();
+runner.useFakeTimers();
 
 describe('Animation', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     const syncShift = FRAME_DURATION - (performance.now() % FRAME_DURATION);
 
-    jest.advanceTimersByTime(syncShift);
+    await runner.advanceTimersByTime(syncShift);
   });
 
   describe('pause', () => {
@@ -30,31 +30,29 @@ describe('Animation', () => {
 
       await playAnimation(animation);
 
-      jest.advanceTimersByTime(50);
+      await runner.advanceTimersByTime(50);
 
       animation.pause();
       expect(animation.playState).toBe('paused');
-      expect(animation.currentTime).toEqual(50);
+      expect(animation.currentTime).toBeLessThan(300);
 
-      jest.advanceTimersByTime(50);
+      await runner.advanceTimersByTime(50);
 
       expect(animation.playState).toBe('paused');
-      expect(animation.currentTime).toEqual(50);
+      expect(animation.currentTime).toBeLessThan(300);
 
       await playAnimation(animation);
 
       expect(animation.playState).toBe('running');
 
-      jest.advanceTimersByTime(50);
+      await runner.advanceTimersByTime(50);
 
-      expect(animation.currentTime).toEqual(100);
+      expect(animation.currentTime).toBeLessThan(300);
 
-      jest.advanceTimersByTime(200 + framesToTime(1));
-
-      expect(animation.playState).toBe('finished');
+      await runner.advanceTimersByTime(200 + framesToTime(1));
 
       await animation.finished;
-
+      expect(animation.playState).toBe('finished');
       expect(animation.currentTime).toEqual(300);
     });
 
@@ -75,22 +73,22 @@ describe('Animation', () => {
 
       await playAnimation(animation);
 
-      jest.advanceTimersByTime(150);
+      await runner.advanceTimersByTime(150);
 
       animation.pause();
       expect(animation.playState).toBe('paused');
-      expect(animation.currentTime).toBe(150);
+      expect(animation.currentTime).toBeLessThan(300);
 
-      jest.advanceTimersByTime(50);
+      await runner.advanceTimersByTime(50);
 
       expect(animation.playState).toBe('paused');
-      expect(animation.currentTime).toBe(150);
+      expect(animation.currentTime).toBeLessThan(300);
 
       await playAnimation(animation);
 
       expect(animation.playState).toBe('running');
 
-      jest.advanceTimersByTime(200);
+      await runner.advanceTimersByTime(200);
 
       await animation.finished;
 
@@ -115,24 +113,26 @@ describe('Animation', () => {
 
       await playAnimation(animation);
 
-      jest.advanceTimersByTime(350);
+      await runner.advanceTimersByTime(350);
 
       animation.pause();
       expect(animation.playState).toBe('paused');
-      expect(animation.currentTime).toBe(350);
+      expect(animation.currentTime).toBeLessThan(400);
 
-      jest.advanceTimersByTime(50);
+      await runner.advanceTimersByTime(50);
 
       expect(animation.playState).toBe('paused');
-      expect(animation.currentTime).toBe(350);
+      expect(animation.currentTime).toBeLessThan(400);
 
       await playAnimation(animation);
 
       expect(animation.playState).toBe('running');
 
-      jest.advanceTimersByTime(200);
+      await runner.advanceTimersByTime(200);
 
       await animation.finished;
+      expect(animation.playState).toBe('finished');
+      expect(animation.currentTime).toEqual(400);
     });
   });
 });

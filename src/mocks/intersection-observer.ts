@@ -1,5 +1,8 @@
 import { Writable, PartialDeep } from 'type-fest';
 import './size/DOMRect';
+import { getConfig } from '../tools';
+
+const config = getConfig();
 
 export type IntersectionDescription = Omit<
   PartialDeep<Writable<IntersectionObserverEntry>>,
@@ -197,33 +200,37 @@ function mockIntersectionObserver() {
     value: MockedIntersectionObserver,
   });
 
-  afterAll(() => {
+  config.afterAll(() => {
     window.IntersectionObserver = savedImplementation;
   });
 
   return {
     enterAll: (desc?: IntersectionDescription) => {
-      state.observers.forEach((observer) => {
-        const nodeDescriptions = observer.nodes.map((node) => ({
-          node,
-          desc: {
-            intersectionRatio: 1,
-            ...desc,
-            isIntersecting: true,
-          },
-        }));
+      config.act(() => {
+        state.observers.forEach((observer) => {
+          const nodeDescriptions = observer.nodes.map((node) => ({
+            node,
+            desc: {
+              intersectionRatio: 1,
+              ...desc,
+              isIntersecting: true,
+            },
+          }));
 
-        observer.triggerNodes(nodeDescriptions);
+          observer.triggerNodes(nodeDescriptions);
+        });
       });
     },
     enterNode: (node: HTMLElement, desc?: IntersectionDescription) => {
       const observers = getObserversByNode(node);
 
-      observers.forEach((observer) => {
-        observer.triggerNode(node, {
-          intersectionRatio: 1,
-          ...desc,
-          isIntersecting: true,
+      config.act(() => {
+        observers.forEach((observer) => {
+          observer.triggerNode(node, {
+            intersectionRatio: 1,
+            ...desc,
+            isIntersecting: true,
+          });
         });
       });
     },
@@ -236,37 +243,43 @@ function mockIntersectionObserver() {
         normalizedNodeDescriptions
       );
 
-      observerNodes.forEach(({ observer, nodeDescriptions }) => {
-        observer.triggerNodes(
-          nodeDescriptions.map(({ node, desc }) => ({
-            node,
-            desc: { intersectionRatio: 1, ...desc, isIntersecting: true },
-          }))
-        );
+      config.act(() => {
+        observerNodes.forEach(({ observer, nodeDescriptions }) => {
+          observer.triggerNodes(
+            nodeDescriptions.map(({ node, desc }) => ({
+              node,
+              desc: { intersectionRatio: 1, ...desc, isIntersecting: true },
+            }))
+          );
+        });
       });
     },
     leaveAll: (desc?: IntersectionDescription) => {
-      state.observers.forEach((observer) => {
-        const nodeDescriptions = observer.nodes.map((node) => ({
-          node,
-          desc: {
-            intersectionRatio: 0,
-            ...desc,
-            isIntersecting: false,
-          },
-        }));
+      config.act(() => {
+        state.observers.forEach((observer) => {
+          const nodeDescriptions = observer.nodes.map((node) => ({
+            node,
+            desc: {
+              intersectionRatio: 0,
+              ...desc,
+              isIntersecting: false,
+            },
+          }));
 
-        observer.triggerNodes(nodeDescriptions);
+          observer.triggerNodes(nodeDescriptions);
+        });
       });
     },
     leaveNode: (node: HTMLElement, desc?: IntersectionDescription) => {
       const observers = getObserversByNode(node);
 
-      observers.forEach((observer) => {
-        observer.triggerNode(node, {
-          intersectionRatio: 0,
-          ...desc,
-          isIntersecting: false,
+      config.act(() => {
+        observers.forEach((observer) => {
+          observer.triggerNode(node, {
+            intersectionRatio: 0,
+            ...desc,
+            isIntersecting: false,
+          });
         });
       });
     },
@@ -280,8 +293,10 @@ function mockIntersectionObserver() {
         normalizedNodeDescriptions
       );
 
-      observerNodes.forEach(({ observer, nodeDescriptions }) => {
-        observer.triggerNodes(nodeDescriptions);
+      config.act(() => {
+        observerNodes.forEach(({ observer, nodeDescriptions }) => {
+          observer.triggerNodes(nodeDescriptions);
+        });
       });
     },
     leaveNodes: (
@@ -294,13 +309,15 @@ function mockIntersectionObserver() {
         normalizedNodeDescriptions
       );
 
-      observerNodes.forEach(({ observer, nodeDescriptions }) => {
-        observer.triggerNodes(
-          nodeDescriptions.map(({ node, desc }) => ({
-            node,
-            desc: { intersectionRatio: 0, ...desc, isIntersecting: false },
-          }))
-        );
+      config.act(() => {
+        observerNodes.forEach(({ observer, nodeDescriptions }) => {
+          observer.triggerNodes(
+            nodeDescriptions.map(({ node, desc }) => ({
+              node,
+              desc: { intersectionRatio: 0, ...desc, isIntersecting: false },
+            }))
+          );
+        });
       });
     },
     cleanup: () => {

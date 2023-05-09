@@ -1,4 +1,7 @@
-export class MockedMediaQueryListEvent extends Event {
+export class MockedMediaQueryListEvent
+  extends Event
+  implements MediaQueryListEvent
+{
   readonly matches: boolean;
   readonly media: string;
 

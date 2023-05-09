@@ -1,15 +1,15 @@
-import { playAnimation, FRAME_DURATION } from '../testTools';
+import { playAnimation, FRAME_DURATION } from '../../testTools';
 import { mockAnimationsApi } from '../index';
 
 mockAnimationsApi();
 
-jest.useFakeTimers();
+runner.useFakeTimers();
 
 describe('Animation', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     const syncShift = FRAME_DURATION - (performance.now() % FRAME_DURATION);
 
-    jest.advanceTimersByTime(syncShift);
+    await runner.advanceTimersByTime(syncShift);
   });
 
   describe('events', () => {
@@ -24,21 +24,21 @@ describe('Animation', () => {
 
       const animation = new Animation(effect);
 
-      const onfinish = jest.fn();
+      const onfinish = runner.fn();
 
       animation.onfinish = onfinish;
       animation.addEventListener('finish', onfinish);
 
       await playAnimation(animation);
 
-      jest.advanceTimersByTime(150);
+      await runner.advanceTimersByTime(150);
 
       await expect(animation.finished).resolves.toBeInstanceOf(Animation);
 
       expect(onfinish).toHaveBeenCalledTimes(2);
     });
 
-    it('should fire cancel events', (done) => {
+    it('should fire cancel events', async () => {
       const element = document.createElement('div');
 
       const effect = new KeyframeEffect(
@@ -49,21 +49,18 @@ describe('Animation', () => {
 
       const animation = new Animation(effect);
 
-      const oncancel = jest.fn();
+      const oncancel = runner.fn();
 
       animation.oncancel = oncancel;
       animation.addEventListener('cancel', oncancel);
 
       animation.play();
 
-      animation.finished.catch(() => {
-        expect(oncancel).toHaveBeenCalledTimes(2);
-        done();
-      });
-
-      jest.advanceTimersByTime(50);
+      await runner.advanceTimersByTime(50);
 
       animation.cancel();
+
+      expect(oncancel).toHaveBeenCalledTimes(2);
     });
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "jsdom-testing-mocks",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "author": "Ivan Galiatin",
   "license": "MIT",
   "description": "A set of tools for emulating browser behavior in jsdom environment",
@@ -12,6 +12,7 @@
     "testing",
     "jsdom",
     "jest",
+    "vitest",
     "mock",
     "Resize Observer API",
     "Intersection Observer API",
@@ -37,13 +38,12 @@
     "watch": "tsup --watch",
     "build": "tsup",
     "test": "jest",
+    "vitest": "vitest --config ./vitest.config.ts run",
     "test:examples": "npm --prefix ./examples run test",
-    "test:all": "npm run test && npm run test:examples",
+    "vitest:examples": "npm --prefix ./examples run vitest",
+    "test:all": "npm run test && npm run vitest && npm run test:examples && npm run vitest:examples",
     "lint": "eslint src/ --ext .ts,.tsx",
     "prepare": "tsup"
-  },
-  "peerDependencies": {
-    "react": ">=17"
   },
   "husky": {
     "hooks": {
@@ -76,14 +76,8 @@
     "css-mediaquery": "^0.1.2"
   },
   "devDependencies": {
-    "@testing-library/dom": "^8.14.0",
-    "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^12.1.5",
-    "@testing-library/user-event": "^13.5.0",
     "@types/css-mediaquery": "^0.1.1",
     "@types/jest": "^28.1.4",
-    "@types/react": "^17.0.47",
-    "@types/react-dom": "^17.0.17",
     "@types/testing-library__jest-dom": "^5.14.5",
     "@typescript-eslint/eslint-plugin": "^5.30.3",
     "@typescript-eslint/parser": "^5.30.3",
@@ -94,14 +88,14 @@
     "husky": "4.2.3",
     "jest": "^28.1.2",
     "jest-environment-jsdom": "^28.1.2",
+    "jest-fail-on-console": "^3.1.1",
     "prettier": "^2.7.1",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
     "ts-jest": "^28.0.5",
     "ts-node": "^10.8.2",
     "tslib": "^2.4.0",
     "tsup": "^6.1.3",
     "type-fest": "^2.15.1",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "vitest": "^0.30.1"
   }
 }

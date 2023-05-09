@@ -4,6 +4,7 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 import failOnConsole from 'jest-fail-on-console';
+import { vi } from 'vitest';
 
 failOnConsole();
 
@@ -13,23 +14,35 @@ failOnConsole({
 });
 
 function useFakeTimers() {
-  jest.useFakeTimers();
+  // vitest doesn't enable performance by default
+  vi.useFakeTimers({
+    shouldClearNativeTimers: true,
+    toFake: [
+      'setTimeout',
+      'clearTimeout',
+      'setInterval',
+      'clearInterval',
+      'performance',
+      'requestAnimationFrame',
+      'cancelAnimationFrame',
+    ],
+  });
 }
 
 function useRealTimers() {
-  jest.useRealTimers();
+  vi.useRealTimers();
 }
 
 async function advanceTimersByTime(time: number) {
-  jest.advanceTimersByTime(time);
+  await vi.advanceTimersByTimeAsync(time);
 }
 
 function fn() {
-  return jest.fn();
+  return vi.fn();
 }
 
 globalThis.runner = {
-  name: 'jest',
+  name: 'vi',
   useFakeTimers,
   useRealTimers,
   advanceTimersByTime,

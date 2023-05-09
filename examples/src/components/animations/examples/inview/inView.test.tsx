@@ -61,7 +61,7 @@ describe('Animations/InView', () => {
   });
 
   it('works with fake timers', async () => {
-    jest.useFakeTimers();
+    runner.useFakeTimers();
 
     render(<InView />);
 
@@ -72,7 +72,7 @@ describe('Animations/InView', () => {
       io.enterNode(screen.getByTestId('section1'));
     });
 
-    jest.advanceTimersByTime(1000);
+    runner.advanceTimersByTime(1000);
 
     await waitFor(() => {
       expect(screen.getByText('Scroll')).toBeVisible();
@@ -85,7 +85,7 @@ describe('Animations/InView', () => {
       io.enterNode(screen.getByTestId('section2'));
     });
 
-    jest.advanceTimersByTime(1000);
+    runner.advanceTimersByTime(1000);
 
     await waitFor(() => {
       expect(screen.getByText('to')).toBeVisible();
@@ -98,7 +98,7 @@ describe('Animations/InView', () => {
       io.enterNode(screen.getByTestId('section3'));
     });
 
-    jest.advanceTimersByTime(1000);
+    runner.advanceTimersByTime(1000);
 
     await waitFor(() => {
       expect(screen.getByText('trigger')).not.toBeVisible();
@@ -111,7 +111,7 @@ describe('Animations/InView', () => {
       io.enterNode(screen.getByTestId('section4'));
     });
 
-    jest.advanceTimersByTime(1000);
+    runner.advanceTimersByTime(1000);
 
     await waitFor(() => {
       expect(screen.getByText('animations!')).toBeVisible();

@@ -1,18 +1,18 @@
 async function playAnimation(animation: Animation) {
   animation.play();
-  jest.advanceTimersByTime(0);
+  runner.advanceTimersByTime(0);
   await expect(animation.ready);
 }
 
 async function playAnimationInReverse(animation: Animation) {
   animation.reverse();
-  jest.advanceTimersByTime(0);
+  runner.advanceTimersByTime(0);
   await expect(animation.ready);
 }
 
 async function updateAnimationPlaybackRate(animation: Animation, rate: number) {
   animation.updatePlaybackRate(rate);
-  jest.advanceTimersByTime(0);
+  runner.advanceTimersByTime(0);
   await expect(animation.ready);
 }
 
@@ -23,7 +23,14 @@ function framesToTime(frames: number) {
   return frames * FRAME_DURATION;
 }
 
+function wait(time: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, time);
+  });
+}
+
 export {
+  wait,
   playAnimation,
   playAnimationInReverse,
   updateAnimationPlaybackRate,

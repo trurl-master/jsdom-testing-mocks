@@ -1,5 +1,5 @@
 {
-  "include": ["src", "example", "./jest-setup.ts"],
+  "include": ["src", "global.d.ts"],
   "compilerOptions": {
     "module": "esnext",
     "target": "ES2015",
