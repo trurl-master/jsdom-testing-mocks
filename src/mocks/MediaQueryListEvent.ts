@@ -13,7 +13,7 @@ export class MockedMediaQueryListEvent
   }
 }
 
-if (typeof MediaQueryListEvent === 'undefined') {
+if (typeof MediaQueryListEvent === 'undefined' && typeof window !== 'undefined') {
   Object.defineProperty(window, 'MediaQueryListEvent', {
     writable: true,
     configurable: true,

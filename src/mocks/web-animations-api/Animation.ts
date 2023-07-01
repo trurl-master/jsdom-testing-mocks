@@ -1737,7 +1737,7 @@ function mockAnimation() {
   mockAnimationPlaybackEvent();
   mockDocumentTimeline();
 
-  if (typeof Animation === 'undefined') {
+  if (typeof Animation === 'undefined' && typeof window !== 'undefined') {
     Object.defineProperty(window, 'Animation', {
       writable: true,
       configurable: true,

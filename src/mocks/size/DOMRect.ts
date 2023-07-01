@@ -149,7 +149,7 @@ export class MockedDOMRect extends MockedDOMRectReadOnly implements DOMRect {
   }
 }
 
-if (typeof DOMRectReadOnly === 'undefined') {
+if (typeof window !== 'undefined' && typeof DOMRectReadOnly === 'undefined') {
   Object.defineProperty(window, 'DOMRectReadOnly', {
     writable: true,
     configurable: true,
@@ -157,7 +157,7 @@ if (typeof DOMRectReadOnly === 'undefined') {
   });
 }
 
-if (typeof DOMRect === 'undefined') {
+if (typeof window !== 'undefined' && typeof DOMRect === 'undefined') {
   Object.defineProperty(window, 'DOMRect', {
     writable: true,
     configurable: true,
