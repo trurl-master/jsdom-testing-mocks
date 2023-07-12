@@ -1,4 +1,6 @@
 import { RequireAtLeastOne } from 'type-fest';
+import { mockDOMRect } from './size/DOMRect';
+import { isJsdomEnv, WrongEnvironmentError } from '../helper';
 import { getConfig } from '../tools';
 
 const config = getConfig();
@@ -142,6 +144,12 @@ function elementToEntry(element: HTMLElement): ResizeObserverEntry | null {
 }
 
 function mockResizeObserver() {
+  if (!isJsdomEnv()) {
+    throw new WrongEnvironmentError();
+  }
+
+  mockDOMRect();
+
   const savedImplementation = window.ResizeObserver;
 
   Object.defineProperty(window, 'ResizeObserver', {
@@ -289,11 +297,5 @@ function mockResizeObserver() {
     },
   };
 }
-
-const { mockElementSize } = mockResizeObserver();
-
-mockElementSize(document.body, {
-  contentBoxSize: [{ blockSize: 100, inlineSize: 100 }],
-});
 
 export { mockResizeObserver };
