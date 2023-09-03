@@ -1,13 +1,14 @@
 import mediaQuery, { MediaValues } from 'css-mediaquery';
-import './MediaQueryListEvent';
+import { mockMediaQueryListEvent } from './MediaQueryListEvent';
 import { getConfig } from '../tools';
+import { isJsdomEnv, WrongEnvironmentError } from '../helper';
 
 const config = getConfig();
 
 /**
- * A tool that allows testing components that use js media queries (matchMedia)
+ *  A tool that allows testing components that use js media queries (matchMedia)
  * `mockViewport` must be called before rendering the component
- * @example using react testing library
+ *  @example using react testing library
  *
  *  const viewport = mockViewport({ width: '320px', height: '568px' })
  *
@@ -46,6 +47,12 @@ function isEventListenerObject(
 }
 
 function mockViewport(desc: ViewportDescription): MockViewport {
+  if (!isJsdomEnv()) {
+    throw new WrongEnvironmentError();
+  }
+
+  mockMediaQueryListEvent();
+
   const state: {
     currentDesc: ViewportDescription;
     oldListeners: {

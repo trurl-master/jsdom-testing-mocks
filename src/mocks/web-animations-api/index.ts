@@ -5,6 +5,7 @@ import {
   clearAnimations,
 } from './elementAnimations';
 import { getConfig } from '../../tools';
+import { isJsdomEnv, WrongEnvironmentError } from '../../helper';
 
 const config = getConfig();
 
@@ -26,6 +27,10 @@ function animate(
 }
 
 function mockAnimationsApi() {
+  if (!isJsdomEnv()) {
+    throw new WrongEnvironmentError();
+  }
+
   const savedAnimate = Element.prototype.animate;
   const savedGetAnimations = Element.prototype.getAnimations;
   const savedGetAllAnimations = Document.prototype.getAnimations;

@@ -1,6 +1,7 @@
 import { Writable, PartialDeep } from 'type-fest';
-import './size/DOMRect';
+import { mockDOMRect } from './size/DOMRect';
 import { getConfig } from '../tools';
+import { isJsdomEnv, WrongEnvironmentError } from '../helper';
 
 const config = getConfig();
 
@@ -192,6 +193,12 @@ export class MockedIntersectionObserver implements IntersectionObserver {
 }
 
 function mockIntersectionObserver() {
+  if (!isJsdomEnv()) {
+    throw new WrongEnvironmentError();
+  }
+
+  mockDOMRect();
+
   const savedImplementation = window.IntersectionObserver;
 
   Object.defineProperty(window, 'IntersectionObserver', {

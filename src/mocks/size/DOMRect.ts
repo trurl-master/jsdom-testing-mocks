@@ -1,3 +1,5 @@
+import { isJsdomEnv, WrongEnvironmentError } from '../../helper';
+
 const protectedProps = ['_x', '_y', '_width', '_height'];
 
 class MockedDOMRectReadOnly implements DOMRectReadOnly {
@@ -107,7 +109,7 @@ class MockedDOMRectReadOnly implements DOMRectReadOnly {
   }
 }
 
-export class MockedDOMRect extends MockedDOMRectReadOnly implements DOMRect {
+class MockedDOMRect extends MockedDOMRectReadOnly implements DOMRect {
   constructor(x = 0, y = 0, width = 0, height = 0) {
     super(x, y, width, height);
   }
@@ -149,18 +151,26 @@ export class MockedDOMRect extends MockedDOMRectReadOnly implements DOMRect {
   }
 }
 
-if (typeof DOMRectReadOnly === 'undefined') {
-  Object.defineProperty(window, 'DOMRectReadOnly', {
-    writable: true,
-    configurable: true,
-    value: MockedDOMRectReadOnly,
-  });
+function mockDOMRect() {
+  if (!isJsdomEnv()) {
+    throw new WrongEnvironmentError();
+  }
+
+  if (typeof DOMRectReadOnly === 'undefined') {
+    Object.defineProperty(window, 'DOMRectReadOnly', {
+      writable: true,
+      configurable: true,
+      value: MockedDOMRectReadOnly,
+    });
+  }
+
+  if (typeof DOMRect === 'undefined') {
+    Object.defineProperty(window, 'DOMRect', {
+      writable: true,
+      configurable: true,
+      value: MockedDOMRect,
+    });
+  }
 }
 
-if (typeof DOMRect === 'undefined') {
-  Object.defineProperty(window, 'DOMRect', {
-    writable: true,
-    configurable: true,
-    value: MockedDOMRect,
-  });
-}
+export { MockedDOMRectReadOnly, MockedDOMRect, mockDOMRect };

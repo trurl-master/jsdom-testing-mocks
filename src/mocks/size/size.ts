@@ -1,4 +1,4 @@
-import './DOMRect';
+import { mockDOMRect } from './DOMRect';
 
 export const mockElementBoundingClientRect = (
   element: HTMLElement,
@@ -9,6 +9,8 @@ export const mockElementBoundingClientRect = (
     height = 0,
   }: Partial<Pick<DOMRect, 'x' | 'y' | 'width' | 'height'>>
 ) => {
+  mockDOMRect();
+
   const savedImplementation = element.getBoundingClientRect;
 
   element.getBoundingClientRect = () =>

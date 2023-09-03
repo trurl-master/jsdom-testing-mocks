@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import './DOMRect';
+import { mockDOMRect } from './DOMRect';
+
+mockDOMRect();
 
 describe('DOMRectReadOnly', () => {
   test('constructor and props', () => {

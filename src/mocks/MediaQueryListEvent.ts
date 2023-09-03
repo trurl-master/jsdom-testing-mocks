@@ -1,7 +1,6 @@
-export class MockedMediaQueryListEvent
-  extends Event
-  implements MediaQueryListEvent
-{
+import { isJsdomEnv, WrongEnvironmentError } from '../helper';
+
+class MockedMediaQueryListEvent extends Event implements MediaQueryListEvent {
   readonly matches: boolean;
   readonly media: string;
 
@@ -13,10 +12,18 @@ export class MockedMediaQueryListEvent
   }
 }
 
-if (typeof MediaQueryListEvent === 'undefined') {
-  Object.defineProperty(window, 'MediaQueryListEvent', {
-    writable: true,
-    configurable: true,
-    value: MockedMediaQueryListEvent,
-  });
+function mockMediaQueryListEvent() {
+  if (!isJsdomEnv()) {
+    throw new WrongEnvironmentError();
+  }
+
+  if (typeof MediaQueryListEvent === 'undefined') {
+    Object.defineProperty(window, 'MediaQueryListEvent', {
+      writable: true,
+      configurable: true,
+      value: MockedMediaQueryListEvent,
+    });
+  }
 }
+
+export { MockedMediaQueryListEvent, mockMediaQueryListEvent };
