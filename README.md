@@ -75,7 +75,7 @@ vi.useFakeTimers({
 
 ## Testing framework support
 
-We aim to support all major testing frameworks that support jsdom. Internally, there are no dependencies on any of them, so it's likely that it will work out of the box. Currently tested and confirmed to work with [jest](https://jestjs.io/) and [vitest](https://vitest.dev/). If you encounter any problems with other testing frameworks, please open an issue.
+We aim to support all major testing frameworks that support jsdom. Internally, there are no dependencies on any of them, so it's likely that it will work out of the box. Currently tested and confirmed to work with [jest](https://jestjs.io/), [@swc/jest](https://swc.rs/docs/usage/jest) and [vitest](https://vitest.dev/) (with [some setup](#with-vitest)). If you encounter any problems with other testing frameworks, please open an issue.
 
 ## Mock viewport
 

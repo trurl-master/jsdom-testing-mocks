@@ -20,9 +20,11 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --watchAll=false",
-    "eject": "react-scripts eject",
-    "vitest": "vitest --config ./vitest.config.ts run"
+    "test:jest": "react-scripts test --watchAll=false",
+    "test:swc": "jest --config ./swcjest.config.js",
+    "test:vi": "vitest --config ./vitest.config.ts run",
+    "test:all": "npm run test:jest && npm run test:vi && npm run test:swc",
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
