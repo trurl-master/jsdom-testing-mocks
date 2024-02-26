@@ -168,6 +168,8 @@ export class MockedIntersectionObserver implements IntersectionObserver {
   }
 
   triggerNodes(nodeDescriptions: NodeIntersectionDescription[]) {
+    if (nodeDescriptions.length === 0) return;
+
     const nodeIndexes = nodeDescriptions.map(({ node }) =>
       findNodeIndex(this.nodes, node)
     );
