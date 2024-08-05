@@ -85,8 +85,6 @@ class MockedResizeObserver implements ResizeObserver {
   };
 
   disconnect = () => {
-    this.observationTargets.clear();
-
     for (const node of this.observationTargets) {
       const targetObservers = state.targetObservers.get(node);
 
@@ -100,6 +98,8 @@ class MockedResizeObserver implements ResizeObserver {
         }
       }
     }
+
+    this.observationTargets.clear();
   };
 }
 
