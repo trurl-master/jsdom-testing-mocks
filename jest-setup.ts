@@ -14,10 +14,15 @@ function fn() {
   return jest.fn();
 }
 
+function spyOn(...args: Parameters<typeof jest.spyOn>) {
+  return jest.spyOn(...args);
+}
+
 globalThis.runner = {
   name: 'jest',
   useFakeTimers,
   useRealTimers,
   advanceTimersByTime,
   fn,
+  spyOn,
 };

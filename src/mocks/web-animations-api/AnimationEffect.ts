@@ -1,3 +1,5 @@
+import { cssNumberishToNumber } from './cssNumberishHelpers';
+
 class MockedAnimationEffect implements AnimationEffect {
   #timing: EffectTiming = {
     delay: 0,
@@ -22,7 +24,8 @@ class MockedAnimationEffect implements AnimationEffect {
       return 0;
     }
 
-    return this.#timing.duration ?? 0;
+    const durationNum = cssNumberishToNumber(this.#timing.duration ?? null);
+    return durationNum ?? 0;
   }
 
   getTiming() {

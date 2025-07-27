@@ -4,6 +4,7 @@ import { mockDocumentTimeline } from './DocumentTimeline';
 import { getEasingFunctionFromString } from './easingFunctions';
 import { addAnimation, removeAnimation } from './elementAnimations';
 import { getConfig } from '../../tools';
+import { cssNumberishToNumber, numberToCSSNumberish } from './cssNumberishHelpers';
 
 type ActiveAnimationTimeline = AnimationTimeline & {
   currentTime: NonNullable<AnimationTimeline['currentTime']>;
@@ -40,6 +41,8 @@ export const RENAMED_KEYFRAME_PROPERTIES: {
   cssOffset: 'offset',
 };
 
+
+
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
 
@@ -58,7 +61,7 @@ class MockedAnimation extends EventTarget implements Animation {
   // implementation details
   #finishedPromise: Promise<Animation>;
   #readyPromise: Promise<Animation>;
-  #startTime: CSSNumberish | null = null;
+  #startTime: number | null = null;
   #pendingPauseTask: (() => void) | null = null;
   #pendingPlayTask: (() => void) | null = null;
   #previousCurrentTime: number | null = null;
@@ -117,7 +120,21 @@ class MockedAnimation extends EventTarget implements Animation {
   }
 
   #getTiming() {
-    return this.#effect!.getTiming() as DefinedEffectTiming;
+    if (!this.#effect) {
+      // Per the spec, if there's no effect, we should return a default timing object.
+      // https://www.w3.org/TR/web-animations-1/#dom-animation-effect
+      return {
+        delay: 0,
+        direction: 'normal',
+        duration: 0,
+        easing: 'linear',
+        endDelay: 0,
+        fill: 'auto',
+        iterationStart: 0,
+        iterations: 1,
+      } as DefinedEffectTiming;
+    }
+    return this.#effect.getTiming() as DefinedEffectTiming;
   }
 
   #getComputedTiming() {
@@ -271,7 +288,11 @@ class MockedAnimation extends EventTarget implements Animation {
       return 'idle';
     }
 
-    const { delay, activeDuration, endTime } = this.#getComputedTiming();
+    const computedTiming = this.#getComputedTiming();
+    const delay = cssNumberishToNumber(computedTiming.delay) ?? 0;
+    const activeDuration = cssNumberishToNumber(computedTiming.activeDuration) ?? 0;
+    const endTime = cssNumberishToNumber(computedTiming.endTime) ?? 0;
+    const localTimeNum = cssNumberishToNumber(localTime) ?? 0;
 
     const beforeActiveBoundaryTime = Math.max(Math.min(delay, endTime), 0);
     const activeAfterBoundaryTime = Math.max(
@@ -280,17 +301,17 @@ class MockedAnimation extends EventTarget implements Animation {
     );
 
     if (
-      localTime < beforeActiveBoundaryTime ||
+      localTimeNum < beforeActiveBoundaryTime ||
       (this.#animationDirection === 'backwards' &&
-        localTime === beforeActiveBoundaryTime)
+        localTimeNum === beforeActiveBoundaryTime)
     ) {
       return 'before';
     }
 
     if (
-      localTime > activeAfterBoundaryTime ||
+      localTimeNum > activeAfterBoundaryTime ||
       (this.#animationDirection === 'forwards' &&
-        localTime === activeAfterBoundaryTime)
+        localTimeNum === activeAfterBoundaryTime)
     ) {
       return 'after';
     }
@@ -445,7 +466,12 @@ class MockedAnimation extends EventTarget implements Animation {
     ) {
       return null;
     } else {
-      return (this.#timeline.currentTime - this.startTime) * this.playbackRate;
+      const timelineTime = cssNumberishToNumber(this.#timeline.currentTime);
+      const startTime = cssNumberishToNumber(this.startTime);
+      if (timelineTime === null || startTime === null) {
+        return null;
+      }
+      return (timelineTime - startTime) * this.playbackRate;
     }
   }
 
@@ -453,7 +479,7 @@ class MockedAnimation extends EventTarget implements Animation {
     let startTime = null;
 
     if (this.#timeline) {
-      const timelineTime = this.#timeline.currentTime;
+      const timelineTime = cssNumberishToNumber(this.#timeline.currentTime);
 
       if (timelineTime !== null) {
         startTime = timelineTime - seekTime / this.playbackRate;
@@ -537,12 +563,12 @@ class MockedAnimation extends EventTarget implements Animation {
     this.#previousCurrentTime = null;
   }
 
-  get startTime() {
+  get startTime(): CSSNumberish | null {
     return this.#startTime;
   }
 
   // 4.4.5. Setting the start time of an animation
-  set startTime(newTime: number | null) {
+  set startTime(newTime: CSSNumberish | null) {
     // 1. Let timeline time be the current time value of the timeline that animation is associated with. If there is no timeline associated with animation or the associated timeline is inactive, let the timeline time be unresolved.
     const timelineTime = this.#timeline?.currentTime ?? null;
 
@@ -552,13 +578,13 @@ class MockedAnimation extends EventTarget implements Animation {
     }
 
     // 3. Let previous current time be animation’s current time.
-    this.#previousCurrentTime = this.currentTime;
+    this.#previousCurrentTime = cssNumberishToNumber(this.currentTime);
 
     // 4. Apply any pending playback rate on animation.
     this.#applyPendingPlaybackRate();
 
     // 5. Set animation’s start time to new start time.
-    this.#startTime = newTime;
+    this.#startTime = cssNumberishToNumber(newTime);
 
     // 6. Update animation’s hold time based on the first matching condition from the following,
     if (newTime !== null) {
@@ -691,15 +717,21 @@ class MockedAnimation extends EventTarget implements Animation {
 
     if (this.#holdTime !== null) {
       this.#applyPendingPlaybackRate();
+      const readyTimeNum = cssNumberishToNumber(readyTime);
+      if (readyTimeNum === null) return;
+      const holdTimeNum = this.#holdTime;
       const newStartTime =
         this.#playbackRate === 0
-          ? readyTime
-          : readyTime - this.#holdTime / this.#playbackRate;
+          ? readyTimeNum
+          : readyTimeNum - holdTimeNum / this.#playbackRate;
 
-      this.startTime = newStartTime;
+      this.startTime = numberToCSSNumberish(newStartTime);
     } else if (this.#startTime !== null && this.#pendingPlaybackRate !== null) {
+      const readyTimeNum = cssNumberishToNumber(readyTime);
+      const startTimeNum = cssNumberishToNumber(this.#startTime);
+      if (readyTimeNum === null || startTimeNum === null) return;
       const currentTimeToMatch =
-        (readyTime - this.#startTime) * this.playbackRate;
+        (readyTimeNum - startTimeNum) * this.playbackRate;
 
       this.#applyPendingPlaybackRate();
 
@@ -707,8 +739,8 @@ class MockedAnimation extends EventTarget implements Animation {
         this.#holdTime = currentTimeToMatch;
       } else {
         const newStartTime =
-          readyTime - currentTimeToMatch / this.#playbackRate;
-        this.startTime = newStartTime;
+          readyTimeNum - currentTimeToMatch / this.#playbackRate;
+        this.startTime = numberToCSSNumberish(newStartTime);
       }
     }
 
@@ -738,10 +770,12 @@ class MockedAnimation extends EventTarget implements Animation {
     const effectEnd = this.#getComputedTiming().endTime;
 
     // condition 1
+    const currentTimeNum = cssNumberishToNumber(currentTime);
+    const effectEndNum = cssNumberishToNumber(effectEnd);
     if (
       this.#effectivePlaybackRate > 0 &&
       autoRewind &&
-      (currentTime === null || currentTime < 0 || currentTime >= effectEnd)
+      (currentTimeNum === null || currentTimeNum < 0 || (effectEndNum !== null && currentTimeNum >= effectEndNum))
     ) {
       seekTime = 0;
     }
@@ -749,16 +783,16 @@ class MockedAnimation extends EventTarget implements Animation {
     else if (
       this.#effectivePlaybackRate < 0 &&
       autoRewind &&
-      (currentTime === null || currentTime <= 0 || currentTime > effectEnd)
+      (currentTimeNum === null || currentTimeNum <= 0 || (effectEndNum !== null && currentTimeNum > effectEndNum))
     ) {
-      if (effectEnd === Infinity) {
+      if (effectEndNum === Infinity) {
         throw new DOMException(
           "Failed to execute 'play' on 'Animation': Cannot play reversed Animation with infinite target effect end.",
           'InvalidStateError'
         );
       }
 
-      seekTime = effectEnd;
+      seekTime = effectEndNum ?? 0;
     }
     // condition 3
     else if (this.#effectivePlaybackRate === 0 && currentTime === null) {
@@ -848,7 +882,11 @@ class MockedAnimation extends EventTarget implements Animation {
 
     // 2. If animation’s start time is resolved and its hold time is not resolved, let animation’s hold time be the result of evaluating (ready time - start time) × playback rate.
     if (this.#startTime !== null && this.#holdTime === null) {
-      this.#holdTime = (readyTime - this.#startTime) * this.#playbackRate;
+      const readyTimeNum = cssNumberishToNumber(readyTime);
+      const startTimeNum = cssNumberishToNumber(this.#startTime);
+      if (readyTimeNum !== null && startTimeNum !== null) {
+        this.#holdTime = (readyTimeNum - startTimeNum) * this.#playbackRate;
+      }
     }
 
     // Note: The hold time might be already set if the animation is finished, or if the animation has a pending play task. In either case we want to preserve the hold time as we enter the paused state.
@@ -907,7 +945,8 @@ class MockedAnimation extends EventTarget implements Animation {
             'InvalidStateError'
           );
         } else {
-          seekTime = effectEnd;
+          const effectEndNum = cssNumberishToNumber(effectEnd);
+          seekTime = effectEndNum ?? 0;
         }
       }
     }
@@ -1052,19 +1091,21 @@ class MockedAnimation extends EventTarget implements Animation {
       //   2. Let the hold time be unresolved.
       const playbackRate = this.playbackRate;
 
-      if (playbackRate > 0 && unconstrainedCurrentTime >= effectEnd) {
+      const unconstrainedCurrentTimeNum = cssNumberishToNumber(unconstrainedCurrentTime);
+      const effectEndNum = cssNumberishToNumber(effectEnd);
+      if (playbackRate > 0 && unconstrainedCurrentTimeNum !== null && effectEndNum !== null && unconstrainedCurrentTimeNum >= effectEndNum) {
         if (didSeek) {
-          this.#holdTime = unconstrainedCurrentTime;
+          this.#holdTime = unconstrainedCurrentTimeNum;
         } else {
           if (this.#previousCurrentTime === null) {
-            this.#holdTime = effectEnd;
+            this.#holdTime = effectEndNum;
           } else {
-            this.#holdTime = Math.max(this.#previousCurrentTime, effectEnd);
+            this.#holdTime = Math.max(this.#previousCurrentTime, effectEndNum);
           }
         }
-      } else if (playbackRate < 0 && unconstrainedCurrentTime <= 0) {
+      } else if (playbackRate < 0 && unconstrainedCurrentTimeNum !== null && unconstrainedCurrentTimeNum <= 0) {
         if (didSeek) {
-          this.#holdTime = unconstrainedCurrentTime;
+          this.#holdTime = unconstrainedCurrentTimeNum;
         } else {
           if (this.#previousCurrentTime === null) {
             this.#holdTime = 0;
@@ -1074,8 +1115,10 @@ class MockedAnimation extends EventTarget implements Animation {
         }
       } else if (playbackRate !== 0 && this.#isTimelineActive()) {
         if (didSeek && this.#holdTime !== null) {
-          this.startTime =
-            this.timeline.currentTime - this.#holdTime / playbackRate;
+          const timelineTimeNum = cssNumberishToNumber(this.timeline.currentTime);
+          if (timelineTimeNum !== null) {
+            this.startTime = numberToCSSNumberish(timelineTimeNum - this.#holdTime / playbackRate);
+          }
         }
         this.#holdTime = null;
       }
@@ -1140,11 +1183,17 @@ class MockedAnimation extends EventTarget implements Animation {
     const limit = this.#playbackRate > 0 ? effectEnd : 0;
 
     // 4. Silently set the current time to limit.
-    this.#setCurrentTimeSilent(limit);
+    const limitNum = cssNumberishToNumber(limit);
+    if (limitNum !== null) {
+      this.#setCurrentTimeSilent(limitNum);
+    }
 
     // 5. If animation’s start time is unresolved and animation has an associated active timeline, let the start time be the result of evaluating timeline time - (limit / playback rate) where timeline time is the current time value of the associated timeline.
     if (this.#startTime === null && this.#isTimelineActive()) {
-      this.#startTime = this.timeline.currentTime - limit / this.#playbackRate;
+      const timelineTimeNum = cssNumberishToNumber(this.timeline.currentTime);
+      if (timelineTimeNum !== null && limitNum !== null) {
+        this.#startTime = timelineTimeNum - limitNum / this.#playbackRate;
+      }
     }
 
     // 6. If there is a pending pause task and start time is resolved,
@@ -1246,7 +1295,10 @@ class MockedAnimation extends EventTarget implements Animation {
 
     // 4. If previous time is resolved, set the current time of animation to previous time
     if (previousTime !== null) {
-      this.currentTime = previousTime;
+      const previousTimeNum = cssNumberishToNumber(previousTime);
+      if (previousTimeNum !== null) {
+        this.currentTime = previousTimeNum;
+      }
     }
   }
 
@@ -1285,14 +1337,19 @@ class MockedAnimation extends EventTarget implements Animation {
 
           if (this.#pendingPlaybackRate !== 0) {
             if (timelineTime) {
-              this.#startTime = unconstrainedCurrentTime
-                ? timelineTime -
-                  unconstrainedCurrentTime / this.#pendingPlaybackRate
-                : null;
+              const timelineTimeNum = cssNumberishToNumber(timelineTime);
+              const unconstrainedCurrentTimeNum = cssNumberishToNumber(unconstrainedCurrentTime);
+              if (timelineTimeNum !== null) {
+                this.#startTime = unconstrainedCurrentTimeNum
+                  ? timelineTimeNum -
+                    unconstrainedCurrentTimeNum / this.#pendingPlaybackRate
+                  : null;
+              }
             }
           } else {
             // 3. If pending playback rate is zero, let animation’s start time be timeline time.
-            this.#startTime = timelineTime;
+            const timelineTimeNum = cssNumberishToNumber(timelineTime);
+            this.#startTime = timelineTimeNum;
           }
 
           // 4. Apply any pending playback rate on animation.
@@ -1379,8 +1436,15 @@ class MockedAnimation extends EventTarget implements Animation {
     else if (
       currentTime !== null &&
       ((this.#effectivePlaybackRate > 0 &&
-        currentTime >= this.#getComputedTiming().endTime) ||
-        (this.#effectivePlaybackRate < 0 && currentTime <= 0))
+        (() => {
+          const currentTimeNum = cssNumberishToNumber(currentTime);
+          const endTimeNum = cssNumberishToNumber(this.#getComputedTiming().endTime);
+          return currentTimeNum !== null && endTimeNum !== null && currentTimeNum >= endTimeNum;
+        })()) ||
+        (this.#effectivePlaybackRate < 0 && (() => {
+          const currentTimeNum = cssNumberishToNumber(currentTime);
+          return currentTimeNum !== null && currentTimeNum <= 0;
+        })()))
     ) {
       return 'finished';
     }
@@ -1426,21 +1490,38 @@ class MockedAnimation extends EventTarget implements Animation {
     switch (this.#phase) {
       case 'before':
         if (this.#fillMode === 'backwards' || this.#fillMode === 'both') {
-          return Math.max(localTime - computedTiming.delay, 0);
+          const localTimeNum = cssNumberishToNumber(localTime);
+          const delayNum = cssNumberishToNumber(computedTiming.delay);
+          if (localTimeNum !== null && delayNum !== null) {
+            return Math.max(localTimeNum - delayNum, 0);
+          }
+          return null;
         } else {
           return null;
         }
-      case 'active':
-        return localTime - computedTiming.delay;
+      case 'active': {
+        const localTimeNum = cssNumberishToNumber(localTime);
+        const delayNum = cssNumberishToNumber(computedTiming.delay);
+        if (localTimeNum !== null && delayNum !== null) {
+          return localTimeNum - delayNum;
+        }
+        return null;
+      }
       case 'after':
         if (this.#fillMode === 'forwards' || this.#fillMode === 'both') {
-          return Math.max(
-            Math.min(
-              localTime - computedTiming.delay,
-              computedTiming.activeDuration
-            ),
-            0
-          );
+          const localTimeNum = cssNumberishToNumber(localTime);
+          const delayNum = cssNumberishToNumber(computedTiming.delay);
+          const activeDurationNum = cssNumberishToNumber(computedTiming.activeDuration);
+          if (localTimeNum !== null && delayNum !== null && activeDurationNum !== null) {
+            return Math.max(
+              Math.min(
+                localTimeNum - delayNum,
+                activeDurationNum
+              ),
+              0
+            );
+          }
+          return null;
         } else {
           return null;
         }
@@ -1546,7 +1627,12 @@ class MockedAnimation extends EventTarget implements Animation {
     const iterationProgress = this.#iterationProgress;
 
     // overall progress should be defined here, see #overallProgress getter
-    const overallProgress = this.#overallProgress!;
+    const overallProgress = this.#overallProgress;
+    if (overallProgress === null) {
+      // This case should ideally not be reached if activeTime is not null,
+      // but as a fallback, we can return 0.
+      return 0;
+    }
 
     if (iterationProgress === 1.0) {
       return Math.floor(overallProgress) - 1;
