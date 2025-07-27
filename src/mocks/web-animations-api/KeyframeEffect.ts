@@ -1,4 +1,5 @@
 import { mockAnimationEffect, MockedAnimationEffect } from './AnimationEffect';
+import { cssNumberishToNumber } from './cssNumberishHelpers';
 
 /**
   Given the structure of PropertyIndexedKeyframes as such:
@@ -87,7 +88,41 @@ class MockedKeyframeEffect
     // not actually implemented, just to make ts happy
     this.iterationComposite = iterationComposite || 'replace';
     this.pseudoElement = pseudoElement || null;
-    this.updateTiming(timing);
+
+    // Only update timing if options were provided
+    if (Object.keys(timing).length > 0) {
+      // Convert CSSNumberish values to numbers for updateTiming
+      const convertedTiming: OptionalEffectTiming = {};
+      
+      if (timing.delay !== undefined) {
+        convertedTiming.delay = cssNumberishToNumber(timing.delay) ?? timing.delay;
+      }
+      if (timing.duration !== undefined) {
+        convertedTiming.duration = typeof timing.duration === 'string' ? timing.duration : cssNumberishToNumber(timing.duration) ?? 0;
+      }
+      if (timing.endDelay !== undefined) {
+        convertedTiming.endDelay = cssNumberishToNumber(timing.endDelay) ?? timing.endDelay;
+      }
+      if (timing.iterationStart !== undefined) {
+        convertedTiming.iterationStart = cssNumberishToNumber(timing.iterationStart) ?? timing.iterationStart;
+      }
+      if (timing.iterations !== undefined) {
+        convertedTiming.iterations = cssNumberishToNumber(timing.iterations) ?? timing.iterations;
+      }
+      if (timing.direction !== undefined) {
+        convertedTiming.direction = timing.direction;
+      }
+      if (timing.easing !== undefined) {
+        convertedTiming.easing = timing.easing;
+      }
+      if (timing.fill !== undefined) {
+        convertedTiming.fill = timing.fill;
+      }
+      if (timing.playbackRate !== undefined) {
+        convertedTiming.playbackRate = timing.playbackRate;
+      }
+      this.updateTiming(convertedTiming);
+    }
   }
 
   #validateKeyframes(keyframes: Keyframe[]) {

@@ -28,10 +28,15 @@ function fn() {
   return vi.fn();
 }
 
+function spyOn(...args: Parameters<typeof vi.spyOn>) {
+  return vi.spyOn(...args);
+}
+
 globalThis.runner = {
   name: 'vi',
   useFakeTimers,
   useRealTimers,
   advanceTimersByTime,
   fn,
+  spyOn,
 };
