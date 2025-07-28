@@ -23,7 +23,6 @@ jobs:
           path: |
             dist
             .eslintcache
-            **/.tsbuildinfo
           key: ${{ runner.os }}-build-${{ hashFiles('src/**/*', 'tsconfig.json', 'eslint.config.js') }}
           restore-keys: |
             ${{ runner.os }}-build-
