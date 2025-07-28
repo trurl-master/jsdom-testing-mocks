@@ -43,7 +43,6 @@ export const RENAMED_KEYFRAME_PROPERTIES: {
 
 
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
 
 /**

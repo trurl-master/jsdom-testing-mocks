@@ -4,14 +4,14 @@ module.exports = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest-setup.ts'],
   testPathIgnorePatterns: ['/node_modules/', '/examples/', '.*\\.browser\\.test\\.ts$'],
-  globals: {
-    'ts-jest': {
+  transform: {
+    '^.+\\.(t|j)sx?$': ['ts-jest', {
       tsconfig: {
         jsx: 'react-jsx',
       },
       diagnostics: {
         warnOnly: true,
       },
-    },
+    }],
   },
 };
