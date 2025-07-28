@@ -1,8 +1,6 @@
 import { useState, useEffect, MutableRefObject } from 'react';
 
-const entryCallbacks: {
-  [key: string]: (entry: IntersectionObserverEntry) => void;
-} = {};
+const entryCallbacks = new Map<string, (entry: IntersectionObserverEntry) => void>();
 let id = 0;
 let observer: IntersectionObserver;
 
@@ -15,9 +13,8 @@ function createObserver() {
   observer = new IntersectionObserver(
     (entries) =>
       entries.forEach((entry) => {
-        entryCallbacks[(entry.target as HTMLElement).dataset._ioid as string](
-          entry
-        );
+        const callback = entryCallbacks.get((entry.target as HTMLElement).dataset._ioid as string);
+        callback?.(entry);
       }),
     {
       rootMargin: '-30% 0% -30% 0%',
@@ -38,14 +35,14 @@ const useIntersection = (
       return;
     }
 
-    const domId = generateId();
+    const domId = generateId().toString();
 
-    entryCallbacks[domId.toString()] = (entry) => {
+    entryCallbacks.set(domId, (entry) => {
       setIsIntersecting(entry.isIntersecting);
       callback?.([entry], observer);
-    };
+    });
 
-    node.dataset._ioid = domId.toString();
+    node.dataset._ioid = domId;
 
     if (!observer) {
       createObserver();
@@ -54,7 +51,7 @@ const useIntersection = (
     observer.observe(node);
 
     return () => {
-      delete entryCallbacks[domId];
+      entryCallbacks.delete(domId);
       observer.unobserve(node);
     };
   }, [callback, ref]);

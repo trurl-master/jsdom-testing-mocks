@@ -3,8 +3,8 @@ import { useRef } from 'react';
 import useDoIFit from './useDoIFit';
 
 const MeasureParent = () => {
-  const ref1 = useRef(null);
-  const ref2 = useRef(null);
+  const ref1 = useRef<HTMLDivElement>(null);
+  const ref2 = useRef<HTMLDivElement>(null);
   const iFit1 = useDoIFit(ref1);
   const iFit2 = useDoIFit(ref2);
 
