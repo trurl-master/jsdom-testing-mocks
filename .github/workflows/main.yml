@@ -51,7 +51,7 @@ jobs:
         run: npm run typecheck
 
       - name: Test all suites in parallel
-        run: npm-run-all -p test:jest test:swc test:vi test:browser test:examples
+        run: npx npm-run-all -p test:jest test:swc test:vi test:browser test:examples
 
       - name: Build
         run: npm run build
