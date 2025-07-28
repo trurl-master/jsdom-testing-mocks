@@ -44,6 +44,9 @@ jobs:
         run: npm ci
         working-directory: ./examples
 
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
       - name: Lint
         run: npm run lint -- --cache
 
