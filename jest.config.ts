@@ -3,7 +3,7 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest-setup.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/examples/'],
+  testPathIgnorePatterns: ['/node_modules/', '/examples/', '.*\\.browser\\.test\\.ts$'],
   globals: {
     'ts-jest': {
       tsconfig: {

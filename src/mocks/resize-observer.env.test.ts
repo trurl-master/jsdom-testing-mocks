@@ -9,6 +9,6 @@ describe('mockResizeObserver', () => {
   it('throws an error when used in a non jsdom environment', () => {
     expect(() => {
       mockResizeObserver();
-    }).toThrowError(WrongEnvironmentError);
+    }).toThrow(WrongEnvironmentError);
   });
 });

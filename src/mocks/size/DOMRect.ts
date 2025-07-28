@@ -31,64 +31,64 @@ class MockedDOMRectReadOnly implements DOMRectReadOnly {
     return this._x;
   }
 
-  set x(_value) {
-    // repeat native behavior
+  set x(_value: number) {
+    /* read-only – ignore writes to mimic native */
   }
 
   get y() {
     return this._y;
   }
 
-  set y(_value) {
-    // repeat native behavior
+  set y(_value: number) {
+    /* read-only – ignore writes to mimic native */
   }
 
   get width() {
     return this._width;
   }
 
-  set width(_value) {
-    // repeat native behavior
+  set width(_value: number) {
+    /* read-only – ignore writes to mimic native */
   }
 
   get height() {
     return this._height;
   }
 
-  set height(_value) {
-    // repeat native behavior
+  set height(_value: number) {
+    /* read-only – ignore writes to mimic native */
   }
 
   get left() {
     return this._x;
   }
 
-  set left(_value) {
-    // repeat native behavior
+  set left(_value: number) {
+    /* read-only – ignore writes to mimic native */
   }
 
   get right() {
     return this._x + Math.max(0, this._width);
   }
 
-  set right(_value) {
-    // repeat native behavior
+  set right(_value: number) {
+    /* read-only – ignore writes to mimic native */
   }
 
   get top() {
     return this._y;
   }
 
-  set top(_value) {
-    // repeat native behavior
+  set top(_value: number) {
+    /* read-only – ignore writes to mimic native */
   }
 
   get bottom() {
     return this._y + Math.max(0, this._height);
   }
 
-  set bottom(_value) {
-    // repeat native behavior
+  set bottom(_value: number) {
+    /* read-only – ignore writes to mimic native */
   }
 
   toJSON() {
@@ -156,21 +156,18 @@ function mockDOMRect() {
     throw new WrongEnvironmentError();
   }
 
-  if (typeof DOMRectReadOnly === 'undefined') {
-    Object.defineProperty(window, 'DOMRectReadOnly', {
-      writable: true,
-      configurable: true,
-      value: MockedDOMRectReadOnly,
-    });
-  }
+  // Always override to ensure consistent behaviour across environments
+  Object.defineProperty(window, 'DOMRectReadOnly', {
+    writable: true,
+    configurable: true,
+    value: MockedDOMRectReadOnly,
+  });
 
-  if (typeof DOMRect === 'undefined') {
-    Object.defineProperty(window, 'DOMRect', {
-      writable: true,
-      configurable: true,
-      value: MockedDOMRect,
-    });
-  }
+  Object.defineProperty(window, 'DOMRect', {
+    writable: true,
+    configurable: true,
+    value: MockedDOMRect,
+  });
 }
 
 export { MockedDOMRectReadOnly, MockedDOMRect, mockDOMRect };

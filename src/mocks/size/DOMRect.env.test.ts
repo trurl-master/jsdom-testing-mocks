@@ -9,6 +9,6 @@ describe('mockDOMRect', () => {
   it('throws an error when used in a non jsdom environment', () => {
     expect(() => {
       mockDOMRect();
-    }).toThrowError(WrongEnvironmentError);
+    }).toThrow(WrongEnvironmentError);
   });
 });
