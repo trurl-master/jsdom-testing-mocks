@@ -18,7 +18,9 @@ class MockedAnimationEffect implements AnimationEffect {
     }
   }
 
-  #getNormalizedDuration(): number {
+  // Changed from private (#getNormalizedDuration) to protected (_getNormalizedDuration)
+  // to allow access from child classes in all JavaScript environments
+  protected _getNormalizedDuration(): number {
     // the only possible value is "auto"
     if (typeof this.#timing.duration === 'string') {
       return 0;
@@ -34,7 +36,7 @@ class MockedAnimationEffect implements AnimationEffect {
 
   getComputedTiming(): ComputedEffectTiming {
     // duration of the animation
-    const duration = this.#getNormalizedDuration();
+    const duration = this._getNormalizedDuration();
 
     // Calculated as (iteration_duration * iteration_count)
     const activeDuration =
