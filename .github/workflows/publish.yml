@@ -2,48 +2,57 @@ name: Publish
 
 on:
   release:
-    # This specifies that the build will be triggered when we publish a release
     types: [published]
 
 jobs:
   publish:
-    name: 'Publish'
+    name: Publish to NPM
     runs-on: ubuntu-latest
-    if: "!contains(github.ref_name, 'beta')"
+    if: ${{ !contains(github.ref_name, 'beta') }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v2
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
           registry-url: https://registry.npmjs.org/
+          cache: 'npm'
 
-      - name: Install deps and build (with cache)
-        uses: bahmutov/npm-install@v1
+      - name: Install dependencies
+        run: npm ci
 
-      - run: npm run build
+      - name: Build package
+        run: npm run build
 
-      - run: npm publish --access public
+      - name: Publish to NPM
+        run: npm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish_beta:
-    name: 'Publish beta'
+    name: Publish beta to NPM
     runs-on: ubuntu-latest
-    if: contains(github.ref_name, 'beta')
+    if: ${{ contains(github.ref_name, 'beta') }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v2
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
           registry-url: https://registry.npmjs.org/
+          cache: 'npm'
 
-      - name: Install deps and build (with cache)
-        uses: bahmutov/npm-install@v1
+      - name: Install dependencies
+        run: npm ci
 
-      - run: npm run build
+      - name: Build package
+        run: npm run build
 
-      - run: npm publish --tag beta --access public
+      - name: Publish beta to NPM
+        run: npm publish --tag beta --access public
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

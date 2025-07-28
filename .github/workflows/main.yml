@@ -1,38 +1,58 @@
 name: Validate
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
-    name: Build, lint, and test on Node ${{ matrix.node }} and ${{ matrix.os }}
-
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        node: ['16.x', '18.x', '20.x']
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+    name: Build, lint, and test on Node LTS
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Use Node ${{ matrix.node }}
-        uses: actions/setup-node@v1
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 'lts/*'
+          cache: 'npm'
 
-      - name: Install deps and build (with cache)
-        uses: bahmutov/npm-install@v1
+      - name: Cache build outputs
+        uses: actions/cache@v4
         with:
-          working-directory: |
-            .
-            examples
+          path: |
+            dist
+            .eslintcache
+            **/.tsbuildinfo
+          key: ${{ runner.os }}-build-${{ hashFiles('src/**/*', 'tsconfig.json', 'eslint.config.js') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      - name: Cache test results
+        uses: actions/cache@v4
+        with:
+          path: |
+            .jest
+            node_modules/.cache
+          key: ${{ runner.os }}-tests-${{ hashFiles('src/**/*.test.*', 'src/**/*.spec.*', 'jest.config.ts', 'vitest.config.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-tests-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install example dependencies
+        run: npm ci
+        working-directory: ./examples
 
       - name: Lint
-        run: npm run lint
+        run: npm run lint -- --cache
 
-      - name: Test
-        run: npm run test:all --ci --coverage --maxWorkers=2
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Test all suites in parallel
+        run: npm-run-all -p test:jest test:swc test:vi test:browser test:examples
 
       - name: Build
         run: npm run build

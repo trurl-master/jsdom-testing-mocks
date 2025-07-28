@@ -49,11 +49,7 @@
     "typecheck": "tsc --noEmit",
     "prepare": "tsup"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint"
-    }
-  },
+
   "prettier": {
     "printWidth": 80,
     "semi": true,
