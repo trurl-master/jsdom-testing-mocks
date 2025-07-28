@@ -1,4 +1,4 @@
-export {};
+/// <reference types="vite/client" />
 
 declare global {
   var runner: {
@@ -6,6 +6,8 @@ declare global {
     useFakeTimers: () => void;
     useRealTimers: () => void;
     advanceTimersByTime: (time: number) => Promise<void>;
-    fn: () => jest.Mock<any, any>;
+    fn: () => jest.Mock | ReturnType<typeof vi.fn>;
   };
 }
+
+export {};

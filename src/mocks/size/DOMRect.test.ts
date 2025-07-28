@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { mockDOMRect } from './DOMRect';
 
 mockDOMRect();

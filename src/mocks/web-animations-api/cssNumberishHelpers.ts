@@ -1,68 +1,114 @@
-/**
- * Helper functions for converting between CSSNumberish and number types
- * 
- * CSSNumberish can be either a number or CSSNumericValue, but most of our
- * internal logic works with numbers. These helpers provide safe conversion
- * at the boundaries between public APIs and internal implementation.
- */
+import { isJsdomEnv, WrongEnvironmentError } from '../../helper';
+import { initCSSTypedOM as mockCSSTypedOM } from '../css-typed-om';
+
 
 /**
  * Converts CSSNumberish to number, handling null and CSSUnitValue values.
- * It's aware of time units and converts them to milliseconds, as the
- * Web Animations API typically works with milliseconds. For unsupported types
- * like CSSMathValue (e.g., calc()), it will return null and log a warning.
- * 
- * @param value - The CSSNumberish value to convert
+ * @param value - The CSSNumberish value to convert (can be null)
  * @returns The number value in milliseconds, or null if the input is null or cannot be converted
  */
 export function cssNumberishToNumber(value: CSSNumberish | null): number | null {
   if (value === null) return null;
   if (typeof value === 'number') return value;
 
-  // Handle CSSUnitValue (e.g., CSS.s(2), CSS.ms(500))
-  // We do a safe check in case the class doesn't exist in the JSDOM environment.
-  if (typeof CSSUnitValue !== 'undefined' && value instanceof CSSUnitValue) {
-    if (value.unit === 's') {
-      return value.value * 1000; // Convert seconds to milliseconds
-    }
-    if (value.unit === 'ms' || value.unit === 'number') {
-      return value.value;
-    }
-    // For other units like 'px', '%', etc., we can't convert to a timeline value.
-    console.warn(`jsdom-testing-mocks: Unsupported CSS unit '${value.unit}' in cssNumberishToNumber. Returning null.`);
-    return null;
-  }
-  
-  // Handle complex CSSNumericValue types that are not supported by this mock
-  if (
-    (typeof CSSMathValue !== 'undefined' && value instanceof CSSMathValue)
-  ) {
+  // Handle CSSUnitValue instances
+  if (value instanceof CSSUnitValue) {
+    const { unit, value: raw } = value;
+    if (unit === 's') return raw * 1000; // seconds to ms
+    if (unit === 'ms' || unit === 'number') return raw;
     console.warn(
-      `jsdom-testing-mocks: Complex CSSNumericValue (like calc()) are not supported. Returning null.`
+      `jsdom-testing-mocks: Unsupported CSS unit '${unit}' in cssNumberishToNumber. Returning null.`
     );
     return null;
   }
 
-  // Fallback for any other unknown case. This is unlikely to be hit.
-  return Number(value);
+  // Handle CSSMathValue instances
+  if (value instanceof CSSMathValue) {
+    // Check the type to determine the appropriate conversion
+    const valueType = value.type();
+    
+    // If it's a time-dimensioned value, try to convert using toSum
+    if (valueType.time === 1 && Object.values(valueType).filter(v => v !== 0).length === 1) {
+      try {
+        // Convert to a sum with milliseconds
+        const msSum = value.toSum('ms');
+        if (msSum.values.length === 1 && msSum.values[0] instanceof CSSUnitValue) {
+          return msSum.values[0].value;
+        }
+        console.warn(
+          'jsdom-testing-mocks: Cannot simplify time-dimensioned CSSMathValue to single millisecond value. Returning null.'
+        );
+        return null;
+      } catch {
+        console.warn(
+          'jsdom-testing-mocks: Cannot convert time-dimensioned CSSMathValue to milliseconds. Returning null.'
+        );
+        return null;
+      }
+    }
+    
+    // If it's dimensionless (number), try to convert using toSum
+    if (Object.values(valueType).every(v => v === 0 || v === undefined)) {
+      try {
+        // Convert to a sum with numbers
+        const numberSum = value.toSum('number');
+        if (numberSum.values.length === 1 && numberSum.values[0] instanceof CSSUnitValue) {
+          return numberSum.values[0].value;
+        }
+        console.warn(
+          'jsdom-testing-mocks: Cannot simplify dimensionless CSSMathValue to single number value. Returning null.'
+        );
+        return null;
+      } catch {
+        console.warn(
+          'jsdom-testing-mocks: Cannot convert dimensionless CSSMathValue to number. Returning null.'
+        );
+        return null;
+      }
+    }
+    
+    // For other dimensions, we cannot convert to time/number units
+    console.warn(
+      'jsdom-testing-mocks: CSSMathValue has incompatible dimensions for animation timing. Returning null.'
+    );
+    return null;
+  }
+
+  console.warn(
+    'jsdom-testing-mocks: Unsupported CSSNumberish value in cssNumberishToNumber. Returning null.'
+  );
+  return null;
 }
 
 /**
- * Converts number to CSSNumberish
- * @param value - The number value to convert
- * @returns The CSSNumberish value, or null if the input is null
+ * @returns The number value, or the default value if conversion fails
  */
-export function numberToCSSNumberish(value: number | null): CSSNumberish | null {
+export function cssNumberishToNumberWithDefault(
+  value: CSSNumberish | null,
+  defaultValue: number
+): number {
+  const converted = cssNumberishToNumber(value);
+  return converted ?? defaultValue;
+}
+
+/**
+ * Converts a number to CSSNumberish
+ * @param value - The number value to convert
+ * @returns The number as CSSNumberish
+ */
+export function numberToCSSNumberish(value: number): CSSNumberish {
   return value;
 }
 
 /**
- * Converts CSSNumberish to number with a default value
- * @param value - The CSSNumberish value to convert
- * @param defaultValue - The default value to return if conversion fails
- * @returns The number value, or the default value if conversion fails
+ * Initialize CSS Typed OM mocks in JSDOM environment
  */
-export function cssNumberishToNumberWithDefault(value: CSSNumberish | null, defaultValue: number): number {
-  const converted = cssNumberishToNumber(value);
-  return converted ?? defaultValue;
-} 
+export function initCSSTypedOM(): void {
+  if (!isJsdomEnv()) {
+    throw new WrongEnvironmentError();
+  }
+  
+  mockCSSTypedOM();
+}
+
+ 

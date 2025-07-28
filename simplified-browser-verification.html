@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Typed OM Browser Verification - Simplified</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .browser-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .expression-result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .expression {
+            color: #0066cc;
+            font-weight: bold;
+        }
+        .result {
+            color: #28a745;
+            margin-left: 20px;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .type {
+            color: #6c757d;
+            font-style: italic;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .export-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .export-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CSS Typed OM Browser Verification - Simplified</h1>
+        
+        <div class="browser-info">
+            <h3>Browser Information</h3>
+            <div id="browser-info"></div>
+        </div>
+
+        <button class="export-btn" onclick="exportResults()">Export Results as JSON</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const results = {
+            timestamp: new Date().toISOString(),
+            browserInfo: '',
+            expressions: []
+        };
+
+        function logExpression(expression, result, type = null, error = null) {
+            const resultObj = {
+                expression: expression,
+                result: result,
+                type: type,
+                error: error
+            };
+            results.expressions.push(resultObj);
+            
+            const div = document.createElement('div');
+            div.className = 'expression-result';
+            
+            let html = `<div class="expression">${expression}</div>`;
+            if (error) {
+                html += `<div class="result error">Error: ${error}</div>`;
+            } else {
+                html += `<div class="result">${result}</div>`;
+                if (type) {
+                    html += `<div class="type">Type: ${type}</div>`;
+                }
+            }
+            
+            div.innerHTML = html;
+            document.getElementById('results').appendChild(div);
+        }
+
+        function updateBrowserInfo() {
+            const info = `User Agent: ${navigator.userAgent}<br>`;
+            const cssTypedOM = typeof CSS !== 'undefined' && CSS.number ? 'Yes' : 'No';
+            const cssSupports = typeof CSS !== 'undefined' && CSS.supports ? 'Yes' : 'No';
+            
+            results.browserInfo = `User Agent: ${navigator.userAgent}\nCSS Typed OM Support: ${cssTypedOM}\nCSS.supports: ${cssSupports}`;
+            
+            document.getElementById('browser-info').innerHTML = 
+                `User Agent: ${navigator.userAgent}<br>` +
+                `CSS Typed OM Support: ${cssTypedOM}<br>` +
+                `CSS.supports: ${cssSupports}`;
+        }
+
+        function testBasicOperations() {
+            const section = document.createElement('div');
+            section.className = 'section';
+            section.innerHTML = '<h3>Basic Operations</h3>';
+            document.getElementById('results').appendChild(section);
+
+            if (typeof CSS === 'undefined' || !CSS.number) {
+                logExpression('CSS.number', 'Not supported', null, 'CSS Typed OM not available');
+                return;
+            }
+
+            // Basic instantiation
+            try {
+                const px = CSS.px(10);
+                logExpression('CSS.px(10)', px.toString(), px.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10)', null, null, e.message);
+            }
+
+            try {
+                const num = CSS.number(42);
+                logExpression('CSS.number(42)', num.toString(), num.constructor.name);
+            } catch (e) {
+                logExpression('CSS.number(42)', null, null, e.message);
+            }
+
+            try {
+                const percent = CSS.percent(50);
+                logExpression('CSS.percent(50)', percent.toString(), percent.constructor.name);
+            } catch (e) {
+                logExpression('CSS.percent(50)', null, null, e.message);
+            }
+
+            // Addition
+            try {
+                const px1 = CSS.px(10);
+                const px2 = CSS.px(20);
+                const result = px1.add(px2);
+                logExpression('CSS.px(10).add(CSS.px(20))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).add(CSS.px(20))', null, null, e.message);
+            }
+
+            // Subtraction
+            try {
+                const px1 = CSS.px(20);
+                const px2 = CSS.px(5);
+                const result = px1.sub(px2);
+                logExpression('CSS.px(20).sub(CSS.px(5))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(20).sub(CSS.px(5))', null, null, e.message);
+            }
+
+            // Multiplication
+            try {
+                const px = CSS.px(10);
+                const num = CSS.number(3);
+                const result = px.mul(num);
+                logExpression('CSS.px(10).mul(CSS.number(3))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).mul(CSS.number(3))', null, null, e.message);
+            }
+
+            // Division
+            try {
+                const px = CSS.px(20);
+                const num = CSS.number(4);
+                const result = px.div(num);
+                logExpression('CSS.px(20).div(CSS.number(4))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(20).div(CSS.number(4))', null, null, e.message);
+            }
+        }
+
+        function testComplexExpressions() {
+            const section = document.createElement('div');
+            section.className = 'section';
+            section.innerHTML = '<h3>Complex Expressions</h3>';
+            document.getElementById('results').appendChild(section);
+
+            if (typeof CSS === 'undefined' || !CSS.number) {
+                logExpression('Complex expressions', 'Not supported', null, 'CSS Typed OM not available');
+                return;
+            }
+
+            // Chained operations
+            try {
+                const px = CSS.px(10);
+                const result = px.add(CSS.px(5)).sub(CSS.px(2)).mul(CSS.number(3));
+                logExpression('CSS.px(10).add(CSS.px(5)).sub(CSS.px(2)).mul(CSS.number(3))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).add(CSS.px(5)).sub(CSS.px(2)).mul(CSS.number(3))', null, null, e.message);
+            }
+
+            // Mixed units
+            try {
+                const px = CSS.px(10);
+                const em = CSS.em(2);
+                const result = px.add(em);
+                logExpression('CSS.px(10).add(CSS.em(2))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).add(CSS.em(2))', null, null, e.message);
+            }
+
+            // Multiple operations
+            try {
+                const px = CSS.px(10);
+                const result = px.add(CSS.px(5), CSS.px(3));
+                logExpression('CSS.px(10).add(CSS.px(5), CSS.px(3))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).add(CSS.px(5), CSS.px(3))', null, null, e.message);
+            }
+
+            // Multiplication with multiple values
+            try {
+                const px = CSS.px(10);
+                const result = px.mul(CSS.number(2), CSS.number(3));
+                logExpression('CSS.px(10).mul(CSS.number(2), CSS.number(3))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).mul(CSS.number(2), CSS.number(3))', null, null, e.message);
+            }
+        }
+
+        function testMDNComplexCases() {
+            const section = document.createElement('div');
+            section.className = 'section';
+            section.innerHTML = '<h3>MDN Complex Cases</h3>';
+            document.getElementById('results').appendChild(section);
+
+            if (typeof CSS === 'undefined' || !CSS.number) {
+                logExpression('MDN complex cases', 'Not supported', null, 'CSS Typed OM not available');
+                return;
+            }
+
+            // MDN Example 1: Multiple unit addition (exact MDN example)
+            try {
+                const v = CSS.px("23").add(CSS.percent("4")).add(CSS.cm("3")).add(CSS.in("9"));
+                logExpression('CSS.px("23").add(CSS.percent("4")).add(CSS.cm("3")).add(CSS.in("9"))', v.toString(), v.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px("23").add(CSS.percent("4")).add(CSS.cm("3")).add(CSS.in("9"))', null, null, e.message);
+            }
+
+            // MDN Example 2: toSum conversion (exact MDN example)
+            try {
+                const v = CSS.px("23").add(CSS.percent("4")).add(CSS.cm("3")).add(CSS.in("9"));
+                const result = v.toSum("px", "percent");
+                logExpression('v.toSum("px", "percent")', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('v.toSum("px", "percent")', null, null, e.message);
+            }
+
+            // Complex mixed operations
+            try {
+                const v = CSS.px(10).add(CSS.em(2)).sub(CSS.percent(5)).mul(CSS.number(3));
+                logExpression('CSS.px(10).add(CSS.em(2)).sub(CSS.percent(5)).mul(CSS.number(3))', v.toString(), v.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).add(CSS.em(2)).sub(CSS.percent(5)).mul(CSS.number(3))', null, null, e.message);
+            }
+
+            // Multiple unit types in one expression
+            try {
+                const v = CSS.px(20).add(CSS.cm(2)).add(CSS.mm(10)).add(CSS.in(1));
+                logExpression('CSS.px(20).add(CSS.cm(2)).add(CSS.mm(10)).add(CSS.in(1))', v.toString(), v.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(20).add(CSS.cm(2)).add(CSS.mm(10)).add(CSS.in(1))', null, null, e.message);
+            }
+
+            // toSum with multiple target units
+            try {
+                const v = CSS.px(20).add(CSS.cm(2)).add(CSS.mm(10)).add(CSS.in(1));
+                const result = v.toSum('px', 'cm');
+                logExpression('v.toSum("px", "cm")', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('v.toSum("px", "cm")', null, null, e.message);
+            }
+
+            // Specific toSum test case
+            try {
+                const v = CSS.px(10).add(CSS.cm(1));
+                const result = v.toSum('px', 'cm');
+                logExpression('CSS.px(10).add(CSS.cm(1)).toSum("px", "cm")', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).add(CSS.cm(1)).toSum("px", "cm")', null, null, e.message);
+            }
+
+            // Complex nested operations
+            try {
+                const v = CSS.px(10).mul(CSS.number(2)).add(CSS.percent(10)).sub(CSS.em(1));
+                logExpression('CSS.px(10).mul(CSS.number(2)).add(CSS.percent(10)).sub(CSS.em(1))', v.toString(), v.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).mul(CSS.number(2)).add(CSS.percent(10)).sub(CSS.em(1))', null, null, e.message);
+            }
+
+            // toSum with incompatible units
+            try {
+                const v = CSS.px(10).add(CSS.s(2));
+                const result = v.toSum('px', 's');
+                logExpression('v.toSum("px", "s")', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('v.toSum("px", "s")', null, null, e.message);
+            }
+
+            // Very complex expression
+            try {
+                const v = CSS.px(100).add(CSS.percent(20)).sub(CSS.em(2)).mul(CSS.number(1.5)).add(CSS.cm(5));
+                logExpression('CSS.px(100).add(CSS.percent(20)).sub(CSS.em(2)).mul(CSS.number(1.5)).add(CSS.cm(5))', v.toString(), v.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(100).add(CSS.percent(20)).sub(CSS.em(2)).mul(CSS.number(1.5)).add(CSS.cm(5))', null, null, e.message);
+            }
+
+            // toSum with all length units
+            try {
+                const v = CSS.px(100).add(CSS.cm(2)).add(CSS.mm(10)).add(CSS.in(1)).add(CSS.pt(12));
+                const result = v.toSum('px', 'cm', 'mm', 'in', 'pt');
+                logExpression('v.toSum("px", "cm", "mm", "in", "pt")', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('v.toSum("px", "cm", "mm", "in", "pt")', null, null, e.message);
+            }
+        }
+
+        function testAdvancedEdgeCases() {
+            const section = document.createElement('div');
+            section.className = 'section';
+            section.innerHTML = '<h3>Advanced Edge Cases</h3>';
+            document.getElementById('results').appendChild(section);
+
+            if (typeof CSS === 'undefined' || !CSS.number) {
+                logExpression('Advanced edge cases', 'Not supported', null, 'CSS Typed OM not available');
+                return;
+            }
+
+            // Empty operations
+            try {
+                const px = CSS.px(10);
+                const result = px.add();
+                logExpression('CSS.px(10).add()', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).add()', null, null, e.message);
+            }
+
+            // Single value operations
+            try {
+                const px = CSS.px(10);
+                const result = px.mul();
+                logExpression('CSS.px(10).mul()', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).mul()', null, null, e.message);
+            }
+
+            // Extreme values
+            try {
+                const extreme = CSS.px(1e308);
+                const result = extreme.add(CSS.px(1));
+                logExpression('CSS.px(1e308).add(CSS.px(1))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(1e308).add(CSS.px(1))', null, null, e.message);
+            }
+
+            // Negative infinity
+            try {
+                const negInf = CSS.px(-Infinity);
+                const result = negInf.add(CSS.px(5));
+                logExpression('CSS.px(-Infinity).add(CSS.px(5))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(-Infinity).add(CSS.px(5))', null, null, e.message);
+            }
+
+            // Complex NaN operations
+            try {
+                const nan = CSS.px(NaN);
+                const result = nan.mul(CSS.number(5));
+                logExpression('CSS.px(NaN).mul(CSS.number(5))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(NaN).mul(CSS.number(5))', null, null, e.message);
+            }
+
+            // Zero multiplication
+            try {
+                const px = CSS.px(10);
+                const result = px.mul(CSS.number(0));
+                logExpression('CSS.px(10).mul(CSS.number(0))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).mul(CSS.number(0))', null, null, e.message);
+            }
+
+            // Identity operations
+            try {
+                const px = CSS.px(10);
+                const result = px.add(CSS.px(0));
+                logExpression('CSS.px(10).add(CSS.px(0))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).add(CSS.px(0))', null, null, e.message);
+            }
+
+            // Self operations
+            try {
+                const px = CSS.px(10);
+                const result = px.add(px);
+                logExpression('CSS.px(10).add(CSS.px(10))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).add(CSS.px(10))', null, null, e.message);
+            }
+        }
+
+        function testMathematicalProperties() {
+            const section = document.createElement('div');
+            section.className = 'section';
+            section.innerHTML = '<h3>Mathematical Properties</h3>';
+            document.getElementById('results').appendChild(section);
+
+            if (typeof CSS === 'undefined' || !CSS.number) {
+                logExpression('Mathematical properties', 'Not supported', null, 'CSS Typed OM not available');
+                return;
+            }
+
+            // Associative property test
+            try {
+                const a = CSS.px(10);
+                const b = CSS.px(20);
+                const c = CSS.px(30);
+                const result1 = a.add(b).add(c);
+                const result2 = a.add(b.add(c));
+                logExpression('Associative: (a+b)+c vs a+(b+c)', `${result1.toString()} vs ${result2.toString()}`, 'comparison');
+            } catch (e) {
+                logExpression('Associative property test', null, null, e.message);
+            }
+
+            // Commutative property test
+            try {
+                const a = CSS.px(10);
+                const b = CSS.px(20);
+                const result1 = a.add(b);
+                const result2 = b.add(a);
+                logExpression('Commutative: a+b vs b+a', `${result1.toString()} vs ${result2.toString()}`, 'comparison');
+            } catch (e) {
+                logExpression('Commutative property test', null, null, e.message);
+            }
+
+            // Distributive property test
+            try {
+                const a = CSS.px(10);
+                const b = CSS.px(20);
+                const c = CSS.number(3);
+                const result1 = a.add(b).mul(c);
+                const result2 = a.mul(c).add(b.mul(c));
+                logExpression('Distributive: (a+b)*c vs a*c+b*c', `${result1.toString()} vs ${result2.toString()}`, 'comparison');
+            } catch (e) {
+                logExpression('Distributive property test', null, null, e.message);
+            }
+
+            // Identity element test
+            try {
+                const a = CSS.px(10);
+                const zero = CSS.px(0);
+                const result = a.add(zero);
+                logExpression('Identity: a+0', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('Identity element test', null, null, e.message);
+            }
+
+            // Inverse element test
+            try {
+                const a = CSS.px(10);
+                const negA = CSS.px(-10);
+                const result = a.add(negA);
+                logExpression('Inverse: a+(-a)', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('Inverse element test', null, null, e.message);
+            }
+        }
+
+        function testUnitConversions() {
+            const section = document.createElement('div');
+            section.className = 'section';
+            section.innerHTML = '<h3>Unit Conversions</h3>';
+            document.getElementById('results').appendChild(section);
+
+            if (typeof CSS === 'undefined' || !CSS.number) {
+                logExpression('Unit conversions', 'Not supported', null, 'CSS Typed OM not available');
+                return;
+            }
+
+            // px to cm
+            try {
+                const px = CSS.px(96);
+                const result = px.to('cm');
+                logExpression('CSS.px(96).to("cm")', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(96).to("cm")', null, null, e.message);
+            }
+
+            // px to in
+            try {
+                const px = CSS.px(96);
+                const result = px.to('in');
+                logExpression('CSS.px(96).to("in")', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(96).to("in")', null, null, e.message);
+            }
+
+            // Same unit conversion
+            try {
+                const px = CSS.px(10);
+                const result = px.to('px');
+                logExpression('CSS.px(10).to("px")', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).to("px")', null, null, e.message);
+            }
+
+            // Incompatible units
+            try {
+                const px = CSS.px(10);
+                const result = px.to('s');
+                logExpression('CSS.px(10).to("s")', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).to("s")', null, null, e.message);
+            }
+        }
+
+        function testTypeInformation() {
+            const section = document.createElement('div');
+            section.className = 'section';
+            section.innerHTML = '<h3>Type Information</h3>';
+            document.getElementById('results').appendChild(section);
+
+            if (typeof CSS === 'undefined' || !CSS.number) {
+                logExpression('Type information', 'Not supported', null, 'CSS Typed OM not available');
+                return;
+            }
+
+            // Length units
+            try {
+                const px = CSS.px(10);
+                const type = px.type();
+                logExpression('CSS.px(10).type()', JSON.stringify(type), typeof type);
+            } catch (e) {
+                logExpression('CSS.px(10).type()', null, null, e.message);
+            }
+
+            // Time units
+            try {
+                const s = CSS.s(2);
+                const type = s.type();
+                logExpression('CSS.s(2).type()', JSON.stringify(type), typeof type);
+            } catch (e) {
+                logExpression('CSS.s(2).type()', null, null, e.message);
+            }
+
+            // Angle units
+            try {
+                const deg = CSS.deg(90);
+                const type = deg.type();
+                logExpression('CSS.deg(90).type()', JSON.stringify(type), typeof type);
+            } catch (e) {
+                logExpression('CSS.deg(90).type()', null, null, e.message);
+            }
+
+            // Percent units
+            try {
+                const percent = CSS.percent(50);
+                const type = percent.type();
+                logExpression('CSS.percent(50).type()', JSON.stringify(type), typeof type);
+            } catch (e) {
+                logExpression('CSS.percent(50).type()', null, null, e.message);
+            }
+        }
+
+        function testComparisonOperations() {
+            const section = document.createElement('div');
+            section.className = 'section';
+            section.innerHTML = '<h3>Comparison Operations</h3>';
+            document.getElementById('results').appendChild(section);
+
+            if (typeof CSS === 'undefined' || !CSS.number) {
+                logExpression('Comparison operations', 'Not supported', null, 'CSS Typed OM not available');
+                return;
+            }
+
+            // Equal values
+            try {
+                const px1 = CSS.px(10);
+                const px2 = CSS.px(10);
+                const result = px1.equals(px2);
+                logExpression('CSS.px(10).equals(CSS.px(10))', result.toString(), typeof result);
+            } catch (e) {
+                logExpression('CSS.px(10).equals(CSS.px(10))', null, null, e.message);
+            }
+
+            // Different values
+            try {
+                const px1 = CSS.px(10);
+                const px2 = CSS.px(20);
+                const result = px1.equals(px2);
+                logExpression('CSS.px(10).equals(CSS.px(20))', result.toString(), typeof result);
+            } catch (e) {
+                logExpression('CSS.px(10).equals(CSS.px(20))', null, null, e.message);
+            }
+
+            // Different units
+            try {
+                const px = CSS.px(10);
+                const em = CSS.em(10);
+                const result = px.equals(em);
+                logExpression('CSS.px(10).equals(CSS.em(10))', result.toString(), typeof result);
+            } catch (e) {
+                logExpression('CSS.px(10).equals(CSS.em(10))', null, null, e.message);
+            }
+        }
+
+        function testEdgeCases() {
+            const section = document.createElement('div');
+            section.className = 'section';
+            section.innerHTML = '<h3>Edge Cases</h3>';
+            document.getElementById('results').appendChild(section);
+
+            if (typeof CSS === 'undefined' || !CSS.number) {
+                logExpression('Edge cases', 'Not supported', null, 'CSS Typed OM not available');
+                return;
+            }
+
+            // Zero values
+            try {
+                const zero = CSS.px(0);
+                const result = zero.add(CSS.px(5));
+                logExpression('CSS.px(0).add(CSS.px(5))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(0).add(CSS.px(5))', null, null, e.message);
+            }
+
+            // Negative values
+            try {
+                const neg = CSS.px(-10);
+                const result = neg.add(CSS.px(15));
+                logExpression('CSS.px(-10).add(CSS.px(15))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(-10).add(CSS.px(15))', null, null, e.message);
+            }
+
+            // Very large numbers
+            try {
+                const large = CSS.px(Number.MAX_SAFE_INTEGER);
+                const result = large.add(CSS.px(1));
+                logExpression('CSS.px(Number.MAX_SAFE_INTEGER).add(CSS.px(1))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(Number.MAX_SAFE_INTEGER).add(CSS.px(1))', null, null, e.message);
+            }
+
+            // Very small numbers
+            try {
+                const small = CSS.px(Number.MIN_VALUE);
+                const result = small.mul(CSS.number(2));
+                logExpression('CSS.px(Number.MIN_VALUE).mul(CSS.number(2))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(Number.MIN_VALUE).mul(CSS.number(2))', null, null, e.message);
+            }
+
+            // NaN values
+            try {
+                const nan = CSS.px(NaN);
+                const result = nan.add(CSS.px(5));
+                logExpression('CSS.px(NaN).add(CSS.px(5))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(NaN).add(CSS.px(5))', null, null, e.message);
+            }
+
+            // Infinity values
+            try {
+                const inf = CSS.px(Infinity);
+                const result = inf.add(CSS.px(5));
+                logExpression('CSS.px(Infinity).add(CSS.px(5))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(Infinity).add(CSS.px(5))', null, null, e.message);
+            }
+
+            // Division by zero
+            try {
+                const px = CSS.px(10);
+                const result = px.div(CSS.number(0));
+                logExpression('CSS.px(10).div(CSS.number(0))', result.toString(), result.constructor.name);
+            } catch (e) {
+                logExpression('CSS.px(10).div(CSS.number(0))', null, null, e.message);
+            }
+        }
+
+        function exportResults() {
+            const dataStr = JSON.stringify(results, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'browser-expressions-results.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function runAllTests() {
+            updateBrowserInfo();
+            testBasicOperations();
+            testComplexExpressions();
+            testMDNComplexCases();
+            testEdgeCases();
+            testAdvancedEdgeCases();
+            testMathematicalProperties();
+            testUnitConversions();
+            testTypeInformation();
+            testComparisonOperations();
+        }
+
+        window.addEventListener('load', runAllTests);
+    </script>
+</body>
+</html> 

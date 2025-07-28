@@ -9,6 +9,6 @@ describe('mockIntersectionObserver', () => {
   it('throws an error when used in a non jsdom environment', () => {
     expect(() => {
       mockIntersectionObserver();
-    }).toThrowError(WrongEnvironmentError);
+    }).toThrow(WrongEnvironmentError);
   });
 });

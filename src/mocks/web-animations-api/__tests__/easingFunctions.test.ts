@@ -5,7 +5,7 @@ import { StepsEasing } from '../easingFunctions';
 
 describe('StepsEasing', () => {
   it('should throw error when invalid steps() function is provided', () => {
-    expect(() => StepsEasing('steps(0.5, jump-end)')).toThrowError(
+    expect(() => StepsEasing('steps(0.5, jump-end)')).toThrow(
       'Invalid easing function: steps(0.5, jump-end)'
     );
   });

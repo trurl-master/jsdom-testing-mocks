@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 
 function useMedia(
   query: string,
-  defaultValue: any | null = null,
-  callback?: (this: MediaQueryList, ev: MediaQueryListEvent) => any
+  defaultValue: boolean | null = null,
+  callback?: (this: MediaQueryList, ev: MediaQueryListEvent) => void
 ) {
   const isInBrowser = typeof window !== 'undefined' && window.matchMedia;
 

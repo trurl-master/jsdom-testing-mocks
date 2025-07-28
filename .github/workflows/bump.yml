@@ -6,31 +6,38 @@ on:
       version:
         description: 'Semver type of new version (major / minor / patch)'
         required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
   bump-version:
     name: Bump version
     runs-on: ubuntu-latest
     steps:
-      - name: Check out source
-        uses: actions/checkout@v2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
+      - name: Checkout repo
+        uses: actions/checkout@v4
         with:
-          node-version: '16'
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
           cache: 'npm'
 
       - name: Install dependencies
-        uses: bahmutov/npm-install@v1
+        run: npm ci
 
       - name: Setup Git
         run: |
-          git config user.name 'Ivan Galiatin'
-          git config user.email 'arxcaeli@gmail.com'
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
 
-      - name: bump version
+      - name: Bump version
         run: npm version ${{ github.event.inputs.version }}
 
-      - name: Push latest version
+      - name: Push changes
         run: git push origin master --follow-tags

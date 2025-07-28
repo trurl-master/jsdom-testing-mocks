@@ -161,6 +161,7 @@ export class MockedIntersectionObserver implements IntersectionObserver {
     this.nodeStates[index] = {
       ...nodeState,
       time: performance.now() - this.timeOrigin,
+      target: node,
       ...desc,
     } as IntersectionObserverEntry;
 
@@ -174,10 +175,11 @@ export class MockedIntersectionObserver implements IntersectionObserver {
       findNodeIndex(this.nodes, node)
     );
 
-    const nodeStates = nodeDescriptions.map(({ desc }, index) => {
+    const nodeStates = nodeDescriptions.map(({ node, desc }, index) => {
       const newState = {
         ...this.nodeStates[nodeIndexes[index]],
         time: performance.now() - this.timeOrigin,
+        target: node,
         ...desc,
       } as IntersectionObserverEntry;
 

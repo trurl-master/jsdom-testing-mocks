@@ -11,7 +11,7 @@ mockAnimationsApi();
 describe('Animation', () => {
   describe('real timers', () => {
     describe('cancel', () => {
-      it('it doesn\'t cancel if state is "idle"', () => {
+      it('doesn\'t cancel if state is "idle"', () => {
         runner.useRealTimers();
 
         const element = document.createElement('div');
@@ -31,7 +31,7 @@ describe('Animation', () => {
         expect(finishedPromise === animation.finished).toBe(true);
       });
 
-      it("it cancels a running animation, but doesn't throw", async () => {
+      it("cancels a running animation, but doesn't throw", async () => {
         runner.useRealTimers();
 
         const element = document.createElement('div');
@@ -106,7 +106,7 @@ describe('Animation', () => {
     });
 
     describe('cancel', () => {
-      it('it doesn\'t cancel if state is "idle"', () => {
+      it('doesn\'t cancel if state is "idle"', () => {
         runner.useFakeTimers();
 
         const element = document.createElement('div');
@@ -126,7 +126,7 @@ describe('Animation', () => {
         expect(finishedPromise === animation.finished).toBe(true);
       });
 
-      it("it cancels a running animation, but doesn't throw", async () => {
+      it("cancels a running animation, but doesn't throw", async () => {
         runner.useFakeTimers();
 
         const element = document.createElement('div');

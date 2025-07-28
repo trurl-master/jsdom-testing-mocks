@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const useDoIFit = (ref: React.RefObject<HTMLElement>) => {
+const useDoIFit = (ref: React.RefObject<HTMLElement | null>) => {
   const [iFit, setIFit] = useState(false);
 
   useEffect(() => {

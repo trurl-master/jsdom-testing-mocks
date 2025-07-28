@@ -103,7 +103,7 @@ describe('KeyframeEffect', () => {
 
     expect(() => {
       new KeyframeEffect(element, keyframes);
-    }).toThrowError(
+    }).toThrow(
       "Failed to construct 'KeyframeEffect': Offsets must be null or in the range [0,1]."
     );
   });
@@ -117,7 +117,7 @@ describe('KeyframeEffect', () => {
 
     expect(() => {
       new KeyframeEffect(element, keyframes);
-    }).toThrowError(
+    }).toThrow(
       "Failed to construct 'KeyframeEffect': Offsets must be monotonically non-decreasing."
     );
   });

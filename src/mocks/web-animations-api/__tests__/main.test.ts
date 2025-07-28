@@ -99,7 +99,7 @@ describe('Animation', () => {
 
       const animation = new Animation(effect);
 
-      expect(() => animation.finish()).toThrowError(
+      expect(() => animation.finish()).toThrow(
         "Failed to execute 'finish' on 'Animation': Cannot finish Animation with an infinite target effect end."
       );
     });

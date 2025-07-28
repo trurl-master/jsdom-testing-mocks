@@ -16,6 +16,7 @@ module.exports = {
     ],
   },
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
+  testPathIgnorePatterns: ['/node_modules/', '.*\\.browser\\.test\\.ts$'],
   moduleNameMapper: {
     '\\.(css|less)$': 'identity-obj-proxy',
   },

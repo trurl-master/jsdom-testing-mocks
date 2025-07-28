@@ -19,7 +19,8 @@ A set of tools for emulating browser behavior in jsdom environment
 [matchMedia](#mock-viewport)  
 [Intersection Observer](#mock-intersectionobserver)  
 [Resize Observer](#mock-resizeobserver)  
-[Web Animations API](#mock-web-animations-api)
+[Web Animations API](#mock-web-animations-api)  
+[CSS Typed OM](#mock-css-typed-om)
 
 ## Installation
 
@@ -409,6 +410,37 @@ it('adds an element into the dom and fades it in', async () => {
 ## Using with fake timers
 
 It's perfectly usable with fake timers, except for the [issue with promises](https://github.com/facebook/jest/issues/2157). Also note that you would need to manually advance timers by the duration of the animation taking frame duration (which currently is set to 16ms in `jest`/`sinon.js`) into account. So if you, say, have an animation with a duration of `300ms`, you will need to advance your timers by the value that is at least the closest multiple of the frame duration, which in this case is `304ms` (`19` frames \* `16ms`). Otherwise the last frame may not fire and the animation won't finish.
+
+## Mock CSS Typed OM
+
+Provides a complete implementation of the CSS Typed Object Model Level 1 specification for testing CSS numeric values and calculations. While primarily used internally by the Web Animations API mock, it's available as a standalone feature supporting all major CSS units, mathematical operations, and type checking.
+
+```jsx
+import { mockCSSTypedOM } from 'jsdom-testing-mocks';
+
+mockCSSTypedOM();
+
+it('performs CSS calculations correctly', () => {
+  const width = CSS.px(100);
+  const height = CSS.px(200);
+  
+  expect(width.add(CSS.px(50)).toString()).toBe('150px');
+  expect(width.mul(height).toString()).toBe('calc(100px * 200px)');
+  expect(CSS.cm(2.54).to('in').toString()).toBe('1in');
+  expect(CSS.px(100).min(CSS.px(200), CSS.px(50)).toString()).toBe('50px');
+});
+
+it('enforces type safety', () => {
+  // Cannot add incompatible units or use raw numbers
+  expect(() => CSS.px(10).add(CSS.em(5))).toThrow();
+  expect(() => CSS.px(10).add(5)).toThrow();
+  
+  // Use CSS.number() for dimensionless values
+  expect(CSS.px(10).add(CSS.number(5)).toString()).toBe('calc(10px + 5)');
+});
+```
+
+Supports all CSS units (length, angle, time, frequency, resolution, flex, percentage), mathematical operations, and enforces type compatibility rules as defined in the [W3C specification](https://www.w3.org/TR/css-typed-om-1/).
 
 ## Current issues
 

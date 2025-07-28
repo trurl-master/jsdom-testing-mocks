@@ -9,6 +9,6 @@ describe('mockAnimationsApi', () => {
   it('throws an error when used in a non jsdom environment', () => {
     expect(() => {
       mockAnimationsApi();
-    }).toThrowError(WrongEnvironmentError);
+    }).toThrow(WrongEnvironmentError);
   });
 });

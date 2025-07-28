@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 
 function useMedia(
   query: string,
-  defaultValue: any | null = null,
+  defaultValue: boolean | null = null,
   options?:
     | {
-        callback?: (this: MediaQueryList, ev: MediaQueryListEvent) => any;
+        callback?: (this: MediaQueryList, ev: MediaQueryListEvent) => void;
         asObject: false;
       }
     | {
-        callback?: (ev: MediaQueryListEvent) => any;
+        callback?: (ev: MediaQueryListEvent) => void;
         asObject: true;
       }
 ) {
