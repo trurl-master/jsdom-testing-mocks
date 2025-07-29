@@ -37,6 +37,7 @@ export default [
       // TS handles undefined types, turn off for TS files
       'no-undef': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-explicit-any': 'error',
     },
   },
   {

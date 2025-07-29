@@ -20,7 +20,8 @@ A set of tools for emulating browser behavior in jsdom environment
 [Intersection Observer](#mock-intersectionobserver)  
 [Resize Observer](#mock-resizeobserver)  
 [Web Animations API](#mock-web-animations-api)  
-[CSS Typed OM](#mock-css-typed-om)
+[CSS Typed OM](#mock-css-typed-om)  
+[Visual Viewport](#mock-visual-viewport)
 
 ## Installation
 
@@ -441,6 +442,75 @@ it('enforces type safety', () => {
 ```
 
 Supports all CSS units (length, angle, time, frequency, resolution, flex, percentage), mathematical operations, and enforces type compatibility rules as defined in the [W3C specification](https://www.w3.org/TR/css-typed-om-1/).
+
+## Mock Visual Viewport
+
+Provides a mock implementation of the Visual Viewport API for testing components that depend on viewport properties like `width`, `height`, `scale`, and position. The mock follows the library's pattern of manual event triggering for deterministic testing.
+
+```jsx
+import { mockVisualViewport } from 'jsdom-testing-mocks';
+
+it('responds to viewport changes', () => {
+  const viewport = mockVisualViewport({
+    width: 375,
+    height: 667,
+    scale: 1,
+    offsetLeft: 0,
+    offsetTop: 0,
+    pageLeft: 0,
+    pageTop: 0,
+  });
+
+  const resizeCallback = jest.fn();
+  window.visualViewport?.addEventListener('resize', resizeCallback);
+
+  // Update viewport properties
+  viewport.set({ width: 768, height: 1024 });
+
+  // Manually trigger events (no automatic dispatch)
+  viewport.triggerResize();
+  expect(resizeCallback).toHaveBeenCalledTimes(1);
+
+  // Test scroll events
+  const scrollCallback = jest.fn();
+  window.visualViewport?.addEventListener('scroll', scrollCallback);
+
+  viewport.set({ pageLeft: 100, pageTop: 200 });
+  viewport.triggerScroll();
+  expect(scrollCallback).toHaveBeenCalledTimes(1);
+
+  viewport.cleanup();
+});
+```
+
+### Properties
+
+The mock supports all Visual Viewport properties:
+- `width` / `height`: Viewport dimensions
+- `scale`: Zoom level (must be positive and finite)
+- `offsetLeft` / `offsetTop`: Visual viewport offset from layout viewport
+- `pageLeft` / `pageTop`: Visual viewport position relative to the page
+- `segments`: Returns empty array (experimental property)
+
+### Events
+
+- `resize`: Triggered manually via `triggerResize()`
+- `scroll`: Triggered manually via `triggerScroll()`
+- Event handlers: `onresize` and `onscroll` properties supported
+
+### Manual Triggering
+
+Unlike real browsers, events are not automatically dispatched when properties change. This ensures deterministic tests:
+
+```jsx
+// Properties can be updated without triggering events
+viewport.set({ width: 500, height: 600 });
+expect(resizeCallback).not.toHaveBeenCalled();
+
+// Events must be triggered manually
+viewport.triggerResize();
+expect(resizeCallback).toHaveBeenCalledTimes(1);
+```
 
 ## Current issues
 
