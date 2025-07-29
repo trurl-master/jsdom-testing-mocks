@@ -23,6 +23,10 @@
     "react"
   ],
   "main": "dist/index.js",
+  "exports": {
+    "import":"./dist/esm/index.js",
+    "require": "./dist/index.js"
+  },
   "typings": "dist/index.d.ts",
   "files": [
     "/dist",
