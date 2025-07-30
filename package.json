@@ -1,6 +1,6 @@
 {
   "name": "jsdom-testing-mocks",
-  "version": "1.15.1",
+  "version": "1.15.2",
   "author": "Ivan Galiatin",
   "license": "MIT",
   "description": "A set of tools for emulating browser behavior in jsdom environment",
@@ -24,8 +24,14 @@
   ],
   "main": "dist/index.js",
   "exports": {
-    "import":"./dist/esm/index.js",
-    "require": "./dist/index.js"
+    "import": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/esm/index.js"
+    },
+    "require": {
+      "types": "./dist/index.d.cts",
+      "default": "./dist/index.js"
+    }
   },
   "typings": "dist/index.d.ts",
   "files": [
