@@ -2,6 +2,7 @@ import {
   mockAnimationTimeline,
   MockedAnimationTimeline,
 } from './AnimationTimeline';
+import './types';
 
 type ViewTimelineAxis = 'block' | 'inline' | 'x' | 'y';
 
