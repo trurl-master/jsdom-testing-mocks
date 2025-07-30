@@ -4,6 +4,8 @@ import {
   getAllAnimations,
   clearAnimations,
 } from './elementAnimations';
+import { mockScrollTimeline } from './ScrollTimeline';
+import { mockViewTimeline } from './ViewTimeline';
 import { getConfig } from '../../tools';
 import { isJsdomEnv, WrongEnvironmentError } from '../../helper';
 
@@ -36,6 +38,8 @@ function mockAnimationsApi() {
   const savedGetAllAnimations = Document.prototype.getAnimations;
 
   mockAnimation();
+  mockScrollTimeline();
+  mockViewTimeline();
 
   Object.defineProperties(Element.prototype, {
     animate: {
@@ -67,4 +71,13 @@ function mockAnimationsApi() {
   });
 }
 
-export { mockAnimationsApi };
+function mockScrollTimelines() {
+  if (!isJsdomEnv()) {
+    throw new WrongEnvironmentError();
+  }
+
+  mockScrollTimeline();
+  mockViewTimeline();
+}
+
+export { mockAnimationsApi, mockScrollTimelines };
