@@ -8,7 +8,7 @@ describe('ScrollTimeline Environment Tests', () => {
   afterEach(() => {
     // Clean up global modifications
     if ('ScrollTimeline' in window) {
-      delete (window as any).ScrollTimeline;
+      delete (window as Record<string, unknown>).ScrollTimeline;
     }
   });
 
@@ -48,7 +48,7 @@ describe('ScrollTimeline Environment Tests', () => {
   it('should work in different test environments', () => {
     expect(() => {
       const timeline = new ScrollTimeline();
-      timeline.currentTime; // Should not throw
+      expect(timeline.currentTime).toBeDefined(); // Should not throw
     }).not.toThrow();
   });
 

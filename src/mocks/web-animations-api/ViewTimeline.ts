@@ -97,10 +97,6 @@ class MockedViewTimeline
       this.#observer = null;
     }
   }
-
-  #cleanup() {
-    this.disconnect();
-  }
 }
 
 function mockViewTimeline() {

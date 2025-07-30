@@ -8,7 +8,7 @@ describe('ScrollTimeline', () => {
   afterEach(() => {
     // Clean up any global modifications
     if ('ScrollTimeline' in window) {
-      delete (window as any).ScrollTimeline;
+      delete (window as Record<string, unknown>).ScrollTimeline;
     }
   });
 
@@ -28,7 +28,7 @@ describe('ScrollTimeline', () => {
   it('should throw error for invalid axis parameter', () => {
     expect(() => {
       new ScrollTimeline({
-        axis: 'invalid' as any
+        axis: 'invalid' as 'block' | 'inline' | 'x' | 'y'
       });
     }).toThrow('Invalid axis value: invalid');
   });

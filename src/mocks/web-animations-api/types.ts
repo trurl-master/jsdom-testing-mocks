@@ -17,6 +17,7 @@ declare global {
   interface ViewTimeline extends AnimationTimeline {
     readonly subject: Element;
     readonly axis: 'block' | 'inline' | 'x' | 'y';
+    disconnect(): void;
   }
 
   interface ViewTimelineConstructor {

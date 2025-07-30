@@ -1,7 +1,7 @@
 import { MockedViewTimeline, mockViewTimeline } from './ViewTimeline';
 
 // Mock IntersectionObserver for testing
-const mockIntersectionObserver = jest.fn().mockImplementation((callback, options) => ({
+const mockIntersectionObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
   disconnect: jest.fn(),
   unobserve: jest.fn()
@@ -23,7 +23,7 @@ describe('ViewTimeline', () => {
     
     // Clean up any global modifications
     if ('ViewTimeline' in window) {
-      delete (window as any).ViewTimeline;
+      delete (window as Record<string, unknown>).ViewTimeline;
     }
     
     jest.clearAllMocks();
@@ -45,13 +45,13 @@ describe('ViewTimeline', () => {
 
   it('should throw error when subject is missing', () => {
     expect(() => {
-      new ViewTimeline({} as any);
+      new ViewTimeline({} as Parameters<ViewTimelineConstructor>[0]);
     }).toThrow('ViewTimeline requires a valid Element as subject');
   });
 
   it('should throw error when subject is not an Element', () => {
     expect(() => {
-      new ViewTimeline({ subject: 'not an element' as any });
+      new ViewTimeline({ subject: 'not an element' as unknown as Element });
     }).toThrow('ViewTimeline requires a valid Element as subject');
   });
 
@@ -60,7 +60,7 @@ describe('ViewTimeline', () => {
     expect(() => {
       new ViewTimeline({
         subject: mockElement,
-        axis: 'invalid' as any
+        axis: 'invalid' as 'block' | 'inline' | 'x' | 'y'
       });
     }).toThrow('Invalid axis value: invalid');
   });
@@ -131,7 +131,7 @@ describe('ViewTimeline', () => {
 
   it('should work when IntersectionObserver is not available', () => {
     // Remove IntersectionObserver
-    delete (global as any).IntersectionObserver;
+    delete (global as Record<string, unknown>).IntersectionObserver;
     
     const mockElement = document.createElement('div');
     const timeline = new ViewTimeline({ subject: mockElement });
