@@ -102,3 +102,7 @@ Most complex mock with multiple files:
 - `bezier-easing` - Animation easing functions
 - `css-mediaquery` - Media query parsing
 - `puppeteer` - Browser automation for tests
+
+## Code Quality
+
+- YOU MUST use proper types and type guards. NEVER use "any" or "as unknown as" typecasts
