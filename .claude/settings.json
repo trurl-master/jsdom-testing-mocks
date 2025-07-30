@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm run lint)",
       "Bash(npm run typecheck)",
-      "Bash(npm run test*)"
+      "Bash(npm run test*)",
+      "Bash(npm install)"
     ],
     "deny": []
   }
