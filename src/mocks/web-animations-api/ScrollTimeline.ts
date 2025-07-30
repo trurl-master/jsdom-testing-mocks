@@ -21,8 +21,18 @@ class MockedScrollTimeline
   constructor(options?: ScrollTimelineOptions) {
     super();
 
+    // Validate axis parameter
+    if (options?.axis && !['block', 'inline', 'x', 'y'].includes(options.axis)) {
+      throw new TypeError(`Invalid axis value: ${options.axis}`);
+    }
+
     this.#source = options?.source ?? document.scrollingElement ?? document.documentElement;
     this.#axis = options?.axis ?? 'block';
+    
+    // Ensure we have a valid source element
+    if (!this.#source) {
+      throw new Error('No scroll source available');
+    }
   }
 
   get source() {

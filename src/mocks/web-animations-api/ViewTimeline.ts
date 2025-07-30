@@ -25,6 +25,16 @@ class MockedViewTimeline
   constructor(options: ViewTimelineOptions) {
     super();
 
+    // Validate required subject parameter
+    if (!options.subject || !(options.subject instanceof Element)) {
+      throw new TypeError('ViewTimeline requires a valid Element as subject');
+    }
+
+    // Validate axis parameter
+    if (options.axis && !['block', 'inline', 'x', 'y'].includes(options.axis)) {
+      throw new TypeError(`Invalid axis value: ${options.axis}`);
+    }
+
     this.#subject = options.subject;
     this.#axis = options.axis ?? 'block';
     this.#inset = options.inset ?? '0px';
@@ -80,11 +90,15 @@ class MockedViewTimeline
     this.#observer.observe(this.#subject);
   }
 
-  #cleanup() {
+  disconnect() {
     if (this.#observer) {
       this.#observer.disconnect();
       this.#observer = null;
     }
+  }
+
+  #cleanup() {
+    this.disconnect();
   }
 }
 

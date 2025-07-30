@@ -43,6 +43,28 @@ describe('ViewTimeline', () => {
     expect(timeline.axis).toBe('block');
   });
 
+  it('should throw error when subject is missing', () => {
+    expect(() => {
+      new ViewTimeline({} as any);
+    }).toThrow('ViewTimeline requires a valid Element as subject');
+  });
+
+  it('should throw error when subject is not an Element', () => {
+    expect(() => {
+      new ViewTimeline({ subject: 'not an element' as any });
+    }).toThrow('ViewTimeline requires a valid Element as subject');
+  });
+
+  it('should throw error for invalid axis parameter', () => {
+    const mockElement = document.createElement('div');
+    expect(() => {
+      new ViewTimeline({
+        subject: mockElement,
+        axis: 'invalid' as any
+      });
+    }).toThrow('Invalid axis value: invalid');
+  });
+
   it('should create a ViewTimeline with custom options', () => {
     const mockElement = document.createElement('div');
     const timeline = new ViewTimeline({
@@ -116,5 +138,19 @@ describe('ViewTimeline', () => {
     
     expect(timeline).toBeInstanceOf(MockedViewTimeline);
     expect(timeline.currentTime).toBe(null);
+  });
+
+  it('should support disconnect method to clean up observer', () => {
+    const mockElement = document.createElement('div');
+    const timeline = new ViewTimeline({ subject: mockElement });
+
+    // Get the mock observer instance
+    const observerInstance = mockIntersectionObserver.mock.results[0].value;
+    
+    // Call disconnect
+    timeline.disconnect();
+    
+    // Should have called disconnect on the observer
+    expect(observerInstance.disconnect).toHaveBeenCalled();
   });
 });

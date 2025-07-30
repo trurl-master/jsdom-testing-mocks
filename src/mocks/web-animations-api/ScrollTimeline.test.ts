@@ -25,6 +25,45 @@ describe('ScrollTimeline', () => {
     expect(timeline.source).toBeTruthy(); // Should default to scrolling element
   });
 
+  it('should throw error for invalid axis parameter', () => {
+    expect(() => {
+      new ScrollTimeline({
+        axis: 'invalid' as any
+      });
+    }).toThrow('Invalid axis value: invalid');
+  });
+
+  it('should throw error when no scroll source is available', () => {
+    // Mock scenario where document has no scrolling element
+    const originalScrollingElement = document.scrollingElement;
+    const originalDocumentElement = document.documentElement;
+    
+    Object.defineProperty(document, 'scrollingElement', {
+      value: null,
+      configurable: true
+    });
+    Object.defineProperty(document, 'documentElement', {
+      value: null,
+      configurable: true
+    });
+
+    try {
+      expect(() => {
+        new ScrollTimeline();
+      }).toThrow('No scroll source available');
+    } finally {
+      // Restore original values
+      Object.defineProperty(document, 'scrollingElement', {
+        value: originalScrollingElement,
+        configurable: true
+      });
+      Object.defineProperty(document, 'documentElement', {
+        value: originalDocumentElement,
+        configurable: true
+      });
+    }
+  });
+
   it('should create a ScrollTimeline with custom options', () => {
     const mockElement = document.createElement('div');
     const timeline = new ScrollTimeline({
