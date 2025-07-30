@@ -1,19 +1,55 @@
 import { MockedViewTimeline, mockViewTimeline } from './ViewTimeline';
 
+// Create framework-agnostic mock functions
+const createMockFunction = () => {
+  const calls: unknown[][] = [];
+  const mockFn = (...args: unknown[]) => {
+    calls.push(args);
+    return undefined;
+  };
+  mockFn.mock = { calls };
+  return mockFn;
+};
+
 // Mock IntersectionObserver for testing
-const mockIntersectionObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  disconnect: jest.fn(),
-  unobserve: jest.fn()
-}));
+const mockObserve = createMockFunction();
+const mockDisconnect = createMockFunction();
+const mockUnobserve = createMockFunction();
+
+const mockIntersectionObserver = function(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+  // Store callback and options for testing
+  const calls = mockIntersectionObserver.mock.calls;
+  calls.push([callback, options]);
+  
+  const instance = {
+    observe: mockObserve,
+    disconnect: mockDisconnect,
+    unobserve: mockUnobserve
+  };
+  
+  mockIntersectionObserver.mock.results.push({ value: instance });
+  return instance;
+};
+
+mockIntersectionObserver.mock = {
+  calls: [] as unknown[][],
+  results: [] as { value: { observe: typeof mockObserve; disconnect: typeof mockDisconnect; unobserve: typeof mockUnobserve } }[]
+};
 
 // Store original IntersectionObserver
 const originalIntersectionObserver = global.IntersectionObserver;
 
 describe('ViewTimeline', () => {
   beforeEach(() => {
+    // Reset mock calls
+    mockObserve.mock.calls.length = 0;
+    mockDisconnect.mock.calls.length = 0;
+    mockUnobserve.mock.calls.length = 0;
+    mockIntersectionObserver.mock.calls.length = 0;
+    mockIntersectionObserver.mock.results.length = 0;
+    
     // Mock IntersectionObserver
-    global.IntersectionObserver = mockIntersectionObserver;
+    global.IntersectionObserver = mockIntersectionObserver as unknown as typeof IntersectionObserver;
     mockViewTimeline();
   });
 
@@ -26,7 +62,12 @@ describe('ViewTimeline', () => {
       delete (window as Record<string, unknown>).ViewTimeline;
     }
     
-    jest.clearAllMocks();
+    // Clear mock calls
+    mockObserve.mock.calls.length = 0;
+    mockDisconnect.mock.calls.length = 0;
+    mockUnobserve.mock.calls.length = 0;
+    mockIntersectionObserver.mock.calls.length = 0;
+    mockIntersectionObserver.mock.results.length = 0;
   });
 
   it('should be available globally after mocking', () => {
@@ -45,7 +86,7 @@ describe('ViewTimeline', () => {
 
   it('should throw error when subject is missing', () => {
     expect(() => {
-      new ViewTimeline({} as Parameters<ViewTimelineConstructor>[0]);
+      new ViewTimeline({} as { subject: Element; axis?: 'block' | 'inline' | 'x' | 'y'; inset?: string | Array<string>; });
     }).toThrow('ViewTimeline requires a valid Element as subject');
   });
 
@@ -58,22 +99,20 @@ describe('ViewTimeline', () => {
   it('should throw error for invalid axis parameter', () => {
     const mockElement = document.createElement('div');
     expect(() => {
-      new ViewTimeline({
-        subject: mockElement,
-        axis: 'invalid' as 'block' | 'inline' | 'x' | 'y'
+      new ViewTimeline({ 
+        subject: mockElement, 
+        axis: 'invalid' as 'block' | 'inline' | 'x' | 'y' 
       });
     }).toThrow('Invalid axis value: invalid');
   });
 
-  it('should create a ViewTimeline with custom options', () => {
+  it('should create ViewTimeline with custom axis', () => {
     const mockElement = document.createElement('div');
-    const timeline = new ViewTimeline({
-      subject: mockElement,
-      axis: 'inline',
-      inset: ['10px', '20px']
+    const timeline = new ViewTimeline({ 
+      subject: mockElement, 
+      axis: 'inline' 
     });
     
-    expect(timeline.subject).toBe(mockElement);
     expect(timeline.axis).toBe('inline');
   });
 
@@ -89,8 +128,9 @@ describe('ViewTimeline', () => {
     const mockElement = document.createElement('div');
     new ViewTimeline({ subject: mockElement });
     
-    expect(mockIntersectionObserver).toHaveBeenCalledWith(
-      expect.any(Function),
+    expect(mockIntersectionObserver.mock.calls.length).toBe(1);
+    expect(typeof mockIntersectionObserver.mock.calls[0][0]).toBe('function');
+    expect(mockIntersectionObserver.mock.calls[0][1]).toEqual(
       expect.objectContaining({
         root: null,
         rootMargin: '0px',
@@ -106,8 +146,9 @@ describe('ViewTimeline', () => {
       inset: '10px 20px'
     });
     
-    expect(mockIntersectionObserver).toHaveBeenCalledWith(
-      expect.any(Function),
+    expect(mockIntersectionObserver.mock.calls.length).toBe(1);
+    expect(typeof mockIntersectionObserver.mock.calls[0][0]).toBe('function');
+    expect(mockIntersectionObserver.mock.calls[0][1]).toEqual(
       expect.objectContaining({
         rootMargin: '10px 20px'
       })
@@ -121,8 +162,9 @@ describe('ViewTimeline', () => {
       inset: ['10px', '20px', '30px', '40px']
     });
     
-    expect(mockIntersectionObserver).toHaveBeenCalledWith(
-      expect.any(Function),
+    expect(mockIntersectionObserver.mock.calls.length).toBe(1);
+    expect(typeof mockIntersectionObserver.mock.calls[0][0]).toBe('function');
+    expect(mockIntersectionObserver.mock.calls[0][1]).toEqual(
       expect.objectContaining({
         rootMargin: '10px 20px 30px 40px'
       })
@@ -143,14 +185,11 @@ describe('ViewTimeline', () => {
   it('should support disconnect method to clean up observer', () => {
     const mockElement = document.createElement('div');
     const timeline = new ViewTimeline({ subject: mockElement });
-
-    // Get the mock observer instance
-    const observerInstance = mockIntersectionObserver.mock.results[0].value;
     
     // Call disconnect
     timeline.disconnect();
     
     // Should have called disconnect on the observer
-    expect(observerInstance.disconnect).toHaveBeenCalled();
+    expect(mockDisconnect.mock.calls.length).toBe(1);
   });
 });

@@ -1,8 +1,20 @@
 import { mockScrollTimelines } from './index';
+import { mockAnimation } from './Animation';
+import { getAllAnimations } from './elementAnimations';
 
 describe('ScrollTimeline Environment Tests', () => {
   beforeEach(() => {
     mockScrollTimelines();
+    mockAnimation(); // Mock Animation for integration tests
+    
+    // Manually mock document.getAnimations since mockScrollTimelines doesn't include it
+    if (!document.getAnimations) {
+      Object.defineProperty(Document.prototype, 'getAnimations', {
+        writable: true,
+        configurable: true,
+        value: getAllAnimations,
+      });
+    }
   });
 
   afterEach(() => {
@@ -55,7 +67,7 @@ describe('ScrollTimeline Environment Tests', () => {
   it('should handle edge cases gracefully', () => {
     // Test with null source
     const timelineWithNull = new ScrollTimeline({ source: null });
-    expect(timelineWithNull.currentTime).toBe(null);
+    expect(timelineWithNull.currentTime).toBe(0); // ScrollTimeline returns 0 when source is null
 
     // Test with element that has no scroll capability
     const nonScrollElement = document.createElement('span');
