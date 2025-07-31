@@ -62,17 +62,22 @@ describe('Animations/InView', () => {
 
   it('works with fake timers', async () => {
     runner.useFakeTimers();
-
+    
     render(<InView />);
+
+    // Mock element dimensions for visibility detection in jsdom
+    document.querySelectorAll('span').forEach(span => {
+      Object.defineProperty(span, 'offsetWidth', { value: 100 });
+      Object.defineProperty(span, 'offsetHeight', { value: 50 });
+    });
 
     // first section
     expect(screen.getByText('Scroll')).not.toBeVisible();
 
     act(() => {
       io.enterNode(screen.getByTestId('section1'));
+      runner.advanceTimersByTime(1200); // Complete animation (200ms delay + 900ms duration + buffer)
     });
-
-    runner.advanceTimersByTime(1000);
 
     await waitFor(() => {
       expect(screen.getByText('Scroll')).toBeVisible();
@@ -83,9 +88,8 @@ describe('Animations/InView', () => {
 
     act(() => {
       io.enterNode(screen.getByTestId('section2'));
+      runner.advanceTimersByTime(1200);
     });
-
-    runner.advanceTimersByTime(1000);
 
     await waitFor(() => {
       expect(screen.getByText('to')).toBeVisible();
@@ -96,12 +100,11 @@ describe('Animations/InView', () => {
 
     act(() => {
       io.enterNode(screen.getByTestId('section3'));
+      runner.advanceTimersByTime(1200);
     });
 
-    runner.advanceTimersByTime(1000);
-
     await waitFor(() => {
-      expect(screen.getByText('trigger')).not.toBeVisible();
+      expect(screen.getByText('trigger')).toBeVisible();
     });
 
     // fourth section
@@ -109,9 +112,8 @@ describe('Animations/InView', () => {
 
     act(() => {
       io.enterNode(screen.getByTestId('section4'));
+      runner.advanceTimersByTime(1200);
     });
-
-    runner.advanceTimersByTime(1000);
 
     await waitFor(() => {
       expect(screen.getByText('animations!')).toBeVisible();

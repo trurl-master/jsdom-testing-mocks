@@ -18,7 +18,10 @@ function animate(
 ) {
   const keyframeEffect = new KeyframeEffect(this, keyframes, options);
 
-  const animation = new Animation(keyframeEffect);
+  // Extract timeline from options if provided
+  const timeline = typeof options === 'object' && options.timeline ? options.timeline : document.timeline;
+  const animation = new Animation(keyframeEffect, timeline);
+  
   if (typeof options == 'object' && options.id) {
     animation.id = options.id;
   }
@@ -81,3 +84,5 @@ function mockScrollTimelines() {
 }
 
 export { mockAnimationsApi, mockScrollTimelines };
+export { MockedScrollTimeline, mockScrollTimeline } from './ScrollTimeline';
+export { MockedViewTimeline, mockViewTimeline } from './ViewTimeline';

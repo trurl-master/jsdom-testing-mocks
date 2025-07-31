@@ -8,7 +8,7 @@ describe('ScrollTimeline', () => {
   afterEach(() => {
     // Clean up any global modifications
     if ('ScrollTimeline' in window) {
-      delete (window as Record<string, unknown>).ScrollTimeline;
+      Reflect.deleteProperty(window, 'ScrollTimeline');
     }
   });
 
@@ -91,7 +91,12 @@ describe('ScrollTimeline', () => {
       axis: 'block'
     });
     
-    expect(timeline.currentTime).toBe(0);
+    const currentTime = timeline.currentTime;
+    expect(currentTime).toBeInstanceOf(CSSUnitValue);
+    if (currentTime instanceof CSSUnitValue) {
+      expect(currentTime.value).toBe(0);
+      expect(currentTime.unit).toBe('percent');
+    }
   });
 
   it('should calculate currentTime based on scroll position', () => {
@@ -111,7 +116,12 @@ describe('ScrollTimeline', () => {
     });
     
     // 50 / (200 - 100) = 0.5, so 50% progress
-    expect(timeline.currentTime).toBe(50);
+    const currentTime = timeline.currentTime;
+    expect(currentTime).toBeInstanceOf(CSSUnitValue);
+    if (currentTime instanceof CSSUnitValue) {
+      expect(currentTime.value).toBe(50);
+      expect(currentTime.unit).toBe('percent');
+    }
   });
 
   it('should handle horizontal scrolling with x axis', () => {
@@ -131,7 +141,12 @@ describe('ScrollTimeline', () => {
     });
     
     // 25 / (150 - 100) = 0.5, so 50% progress
-    expect(timeline.currentTime).toBe(50);
+    const currentTime = timeline.currentTime;
+    expect(currentTime).toBeInstanceOf(CSSUnitValue);
+    if (currentTime instanceof CSSUnitValue) {
+      expect(currentTime.value).toBe(50);
+      expect(currentTime.unit).toBe('percent');
+    }
   });
 
   it('should return 0 when element is not scrollable', () => {
@@ -149,6 +164,11 @@ describe('ScrollTimeline', () => {
       source: mockElement
     });
     
-    expect(timeline.currentTime).toBe(0);
+    const currentTime = timeline.currentTime;
+    expect(currentTime).toBeInstanceOf(CSSUnitValue);
+    if (currentTime instanceof CSSUnitValue) {
+      expect(currentTime.value).toBe(0);
+      expect(currentTime.unit).toBe('percent');
+    }
   });
 });

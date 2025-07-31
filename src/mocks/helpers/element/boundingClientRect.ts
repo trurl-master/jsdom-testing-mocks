@@ -1,4 +1,4 @@
-import { mockDOMRect } from './DOMRect';
+import { mockDOMRect } from '../DOMRect';
 
 export const mockElementBoundingClientRect = (
   element: HTMLElement,

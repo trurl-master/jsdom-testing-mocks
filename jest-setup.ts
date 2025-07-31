@@ -1,9 +1,11 @@
 function useFakeTimers() {
   jest.useFakeTimers();
+  globalThis.runner.isFakeTimersActive = true;
 }
 
 function useRealTimers() {
   jest.useRealTimers();
+  globalThis.runner.isFakeTimersActive = false;
 }
 
 async function advanceTimersByTime(time: number) {
@@ -39,7 +41,7 @@ function createSmartSpy(realSpy: unknown) {
 }
 
 function spyOn<T extends object, K extends keyof T>(object: T, method: K) {
-  const realSpy = (jest.spyOn as (obj: T, method: K) => unknown)(object, method);
+  const realSpy = jest.spyOn(object, method as never);
   return createSmartSpy(realSpy);
 }
 
@@ -50,4 +52,5 @@ globalThis.runner = {
   advanceTimersByTime,
   fn,
   spyOn,
+  isFakeTimersActive: false,
 };

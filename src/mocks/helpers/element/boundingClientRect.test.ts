@@ -1,4 +1,4 @@
-import { mockElementBoundingClientRect } from './size';
+import { mockElementBoundingClientRect } from './boundingClientRect';
 
 test('mockElementBoundingClientRect', () => {
   const element = document.createElement('div');

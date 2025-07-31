@@ -9,7 +9,7 @@ export default {
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/setupVitests.ts'],
+    setupFiles: ['./src/setupVitests.ts', './src/test-setup.ts'],
     include: ['**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
   },
 };

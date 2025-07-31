@@ -3,12 +3,12 @@
  */
 
 import { WrongEnvironmentError } from '../../helper';
-import { mockScrollTimeline } from './ScrollTimeline';
+import { mockViewTimeline } from './ViewTimeline';
 
-describe('mockScrollTimeline', () => {
+describe('mockViewTimeline', () => {
   it('throws an error when used in a non jsdom environment', () => {
     expect(() => {
-      mockScrollTimeline();
+      mockViewTimeline();
     }).toThrow(WrongEnvironmentError);
   });
 });

@@ -5,6 +5,11 @@
 import '@testing-library/jest-dom';
 import failOnConsole from 'jest-fail-on-console';
 import { vi } from 'vitest';
+import { act } from '@testing-library/react';
+import { configMocks } from '../../dist';
+
+// Configure mocks with act to avoid wrapping everything in act calls
+configMocks({ act });
 
 failOnConsole();
 

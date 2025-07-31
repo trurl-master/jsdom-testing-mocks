@@ -29,7 +29,7 @@ describe('Section is intersecting', () => {
     io.enterNode(screen.getByText('A section 1 - not intersecting'));
 
     expect(screen.getByText('A section 1 - intersecting')).toBeInTheDocument();
-    const [entries1, observer1] = cb.mock.calls[0];
+    const [entries1, observer1] = cb.mock.calls[0] as [IntersectionObserverEntry[], IntersectionObserver];
 
     expect(cb).toHaveBeenCalledTimes(1);
     expect(entries1).toHaveLength(1);
@@ -50,7 +50,7 @@ describe('Section is intersecting', () => {
       screen.getByText('A section 1 - not intersecting')
     ).toBeInTheDocument();
 
-    const [entries2, observer2] = cb.mock.calls[1];
+    const [entries2, observer2] = cb.mock.calls[1] as [IntersectionObserverEntry[], IntersectionObserver];
     expect(cb).toHaveBeenCalledTimes(2);
     expect(entries2).toHaveLength(1); // Number of entries
     expect(entries2[0]).toEqual(
@@ -71,7 +71,7 @@ describe('Section is intersecting', () => {
       intersectionRatio: 0.5,
     });
 
-    const [entries1] = cb.mock.calls[0];
+    const [entries1] = cb.mock.calls[0] as [IntersectionObserverEntry[]];
 
     expect(entries1[0]).toEqual(
       expect.objectContaining({
@@ -85,7 +85,7 @@ describe('Section is intersecting', () => {
       intersectionRatio: 0.5,
     });
 
-    const [entries2] = cb.mock.calls[1];
+    const [entries2] = cb.mock.calls[1] as [IntersectionObserverEntry[]];
     expect(entries2[0]).toEqual(
       expect.objectContaining({
         intersectionRatio: 0.5,
@@ -339,7 +339,7 @@ describe('Section is intersecting', () => {
 
     io.enterNode(screen.getByText(/A section 1/), options);
 
-    const [entries] = cb.mock.calls[0];
+    const [entries] = cb.mock.calls[0] as [IntersectionObserverEntry[]];
 
     expect(cb).toHaveBeenCalledTimes(1);
     expect(entries).toHaveLength(1); // Number of entries

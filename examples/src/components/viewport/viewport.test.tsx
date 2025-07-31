@@ -73,7 +73,7 @@ describe('mockViewport', () => {
 
       viewport.set(VIEWPORT_MOBILE);
 
-      const [event] = cb.mock.calls[0];
+      const [event] = cb.mock.calls[0] as [MediaQueryListEvent];
 
       expect(screen.getByText('not desktop')).toBeInTheDocument();
       expect(screen.queryByText('desktop')).not.toBeInTheDocument();
@@ -97,7 +97,7 @@ describe('mockViewport', () => {
 
       viewport.set(VIEWPORT_MOBILE);
 
-      const [event] = cb.mock.calls[0];
+      const [event] = cb.mock.calls[0] as [MediaQueryListEvent];
 
       expect(cb).toHaveBeenCalledTimes(1);
       expect(event).toBeInstanceOf(MediaQueryListEvent);
@@ -119,7 +119,7 @@ describe('mockViewport', () => {
 
       viewport.set(VIEWPORT_MOBILE);
 
-      const [event] = cb.mock.calls[0];
+      const [event] = cb.mock.calls[0] as [MediaQueryListEvent];
 
       expect(cb).toHaveBeenCalledTimes(1);
       expect(event).toBeInstanceOf(MediaQueryListEvent);

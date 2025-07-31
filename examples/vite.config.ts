@@ -7,6 +7,8 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
+    // Handle client-side routing - fallback to index.html for SPA
+    historyApiFallback: true,
   },
   build: {
     outDir: 'build',

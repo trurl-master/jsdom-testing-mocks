@@ -1,5 +1,5 @@
 import { RequireAtLeastOne } from 'type-fest';
-import { mockDOMRect } from './size/DOMRect';
+import { mockDOMRect } from './helpers/DOMRect';
 import { isJsdomEnv, WrongEnvironmentError } from '../helper';
 import { getConfig } from '../tools';
 
