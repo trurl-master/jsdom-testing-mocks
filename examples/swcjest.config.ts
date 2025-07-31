@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   testEnvironment: 'jsdom',
   transform: {
     '^.+\\.(t|j)sx?$': [
@@ -15,7 +15,7 @@ module.exports = {
       },
     ],
   },
-  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
+  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts', '<rootDir>/src/test-setup.ts'],
   testPathIgnorePatterns: ['/node_modules/', '.*\\.browser\\.test\\.ts$'],
   moduleNameMapper: {
     '\\.(css|less)$': 'identity-obj-proxy',

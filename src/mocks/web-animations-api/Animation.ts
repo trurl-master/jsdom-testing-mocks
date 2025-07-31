@@ -1,6 +1,8 @@
 import { mockKeyframeEffect } from './KeyframeEffect';
 import { mockAnimationPlaybackEvent } from './AnimationPlaybackEvent';
 import { mockDocumentTimeline } from './DocumentTimeline';
+import { MockedScrollTimeline } from './ScrollTimeline';
+import { MockedViewTimeline } from './ViewTimeline';
 import { getEasingFunctionFromString } from './easingFunctions';
 import { addAnimation, removeAnimation } from './elementAnimations';
 import { getConfig } from '../../tools';
@@ -44,6 +46,32 @@ export const RENAMED_KEYFRAME_PROPERTIES: {
 
 
 const noop = () => {};
+
+// Guard to prevent recursive timer flushing
+let isFlushingTimers = false;
+
+// Helper to handle microtasks when fake timers are active
+function smartQueueMicrotask(callback: () => void) {
+  queueMicrotask(() => {
+    callback();
+    // If fake timers are active, automatically flush microtasks
+    // This prevents the need for manual advanceTimersByTime(0) calls
+    if (!isFlushingTimers &&
+        typeof globalThis !== 'undefined' && 
+        globalThis.runner && 
+        typeof globalThis.runner.advanceTimersByTime === 'function' &&
+        globalThis.runner.isFakeTimersActive === true) {
+      try {
+        isFlushingTimers = true;
+        globalThis.runner.advanceTimersByTime(0);
+      } catch {
+        // Ignore errors in timer flushing
+      } finally {
+        isFlushingTimers = false;
+      }
+    }
+  });
+}
 
 /**
  * Implements https://www.w3.org/TR/web-animations-1
@@ -137,9 +165,31 @@ class MockedAnimation extends EventTarget implements Animation {
   }
 
   #getComputedTiming() {
-    return this.#getRawComputedTiming.call(
+    const computedTiming = this.#getRawComputedTiming.call(
       this.effect
     ) as DefinedComputedEffectTiming;
+
+    // For scroll-driven animations with duration: "auto", the animation should be 
+    // synchronized with the timeline progress (0-100%)
+    if (this.#isScrollDrivenTimeline() && this.#getTiming().duration === 'auto') {
+      // For scroll-driven animations, duration represents the full scroll range
+      // Use 100 to represent 100% progress
+      const scrollDuration = 100;
+      const activeDuration = scrollDuration * (computedTiming.iterations || 1);
+      
+      return {
+        ...computedTiming,
+        duration: scrollDuration,
+        activeDuration: activeDuration,
+        // For scroll-driven animations, endTime should be based on scroll range, not infinite
+        endTime: Math.max(
+          (computedTiming.delay || 0) + activeDuration + (computedTiming.endDelay || 0),
+          0
+        ),
+      };
+    }
+
+    return computedTiming;
   }
 
   get #localTime() {
@@ -223,6 +273,13 @@ class MockedAnimation extends EventTarget implements Animation {
 
   #isTimelineMonotonicallyIncreasing() {
     return this.#timeline instanceof DocumentTimeline;
+  }
+
+  #isScrollDrivenTimeline() {
+    // Check if timeline is ScrollTimeline or ViewTimeline using proper instanceof
+    return this.#timeline && 
+           (this.#timeline instanceof MockedScrollTimeline || 
+            this.#timeline instanceof MockedViewTimeline);
   }
 
   #calcInitialKeyframe() {
@@ -460,18 +517,49 @@ class MockedAnimation extends EventTarget implements Animation {
   #calculateCurrentTime() {
     if (
       !this.#timeline ||
-      this.#timeline.currentTime === null ||
-      this.startTime === null
+      this.#timeline.currentTime === null
     ) {
       return null;
-    } else {
+    }
+
+    // Handle scroll-driven animations (ScrollTimeline, ViewTimeline)
+    // For scroll timelines, currentTime is based on scroll progress, not timeline time
+    if (this.#isScrollDrivenTimeline()) {
       const timelineTime = cssNumberishToNumber(this.#timeline.currentTime);
-      const startTime = cssNumberishToNumber(this.startTime);
-      if (timelineTime === null || startTime === null) {
+      if (timelineTime === null) {
         return null;
       }
-      return (timelineTime - startTime) * this.playbackRate;
+
+      // For scroll-driven animations, the timeline progress (0-100%) maps directly
+      // to the animation's progress within its duration
+      const effectTiming = this.#getTiming();
+      
+      if (effectTiming.duration === 'auto') {
+        // When duration is "auto", scroll progress maps directly to animation progress
+        // Timeline returns 0-100%, animation expects the same range
+        return timelineTime;
+      } else {
+        // When duration is specified, scale the scroll progress to match the duration
+        const duration = typeof effectTiming.duration === 'number' 
+          ? effectTiming.duration 
+          : (typeof effectTiming.duration === 'string' 
+              ? 100 // fallback for string values
+              : cssNumberishToNumber(effectTiming.duration) ?? 100);
+        return (timelineTime / 100) * duration;
+      }
     }
+
+    // Standard timeline handling (DocumentTimeline)
+    if (this.startTime === null) {
+      return null;
+    }
+
+    const timelineTime = cssNumberishToNumber(this.#timeline.currentTime);
+    const startTime = cssNumberishToNumber(this.startTime);
+    if (timelineTime === null || startTime === null) {
+      return null;
+    }
+    return (timelineTime - startTime) * this.playbackRate;
   }
 
   #calculateStartTime(seekTime: number) {
@@ -607,6 +695,11 @@ class MockedAnimation extends EventTarget implements Animation {
     this.#updateFinishedState(true, false);
   }
 
+  // Public method to trigger iteration for scroll-driven animations
+  _triggerIteration() {
+    this.#iteration();
+  }
+
   #iteration() {
     if (!this.#hasKeyframeEffect()) {
       return;
@@ -682,22 +775,32 @@ class MockedAnimation extends EventTarget implements Animation {
   #playTask() {
     this.#pendingPlayTask = null;
 
-    // assert timeline
-    if (!this.#isTimelineActive()) {
+    // For scroll-driven animations, we allow them to play even if timeline is initially inactive
+    // They will update when the timeline becomes active (e.g., when element comes into view)
+    if (!this.#isScrollDrivenTimeline() && !this.#isTimelineActive()) {
       throw new Error(
         "Failed to play an 'Animation': the animation's timeline is inactive"
       );
     }
 
-    // 1. Assert that at least one of animation’s start time or hold time is resolved.
-    if (this.#startTime === null && this.#holdTime === null) {
-      throw new Error(
-        "Failed to play an 'Animation': the start time or hold time must be resolved"
-      );
+    // For scroll-driven animations, set startTime to 0 to make them active immediately
+    if (this.#isScrollDrivenTimeline()) {
+      if (this.#startTime === null && this.#holdTime === null) {
+        this.#startTime = 0;
+      }
+      // Clear hold time for scroll-driven animations to let them run
+      this.#holdTime = null;
+    } else {
+      // 1. Assert that at least one of animation's start time or hold time is resolved.
+      if (this.#startTime === null && this.#holdTime === null) {
+        throw new Error(
+          "Failed to play an 'Animation': the start time or hold time must be resolved"
+        );
+      }
     }
 
     // 2. Let ready time be the time value of the timeline associated with animation at the moment when animation became ready.
-    const readyTime = this.timeline.currentTime;
+    const readyTime = this.timeline?.currentTime ?? null;
 
     // console.log('readyTime', readyTime, this.#holdTime, this.startTime);
 
@@ -768,34 +871,45 @@ class MockedAnimation extends EventTarget implements Animation {
     const currentTime = this.currentTime;
     const effectEnd = this.#getComputedTiming().endTime;
 
+    // Special handling for scroll-driven animations
+    const isScrollDriven = this.#isScrollDrivenTimeline();
+    
     // condition 1
     const currentTimeNum = cssNumberishToNumber(currentTime);
     const effectEndNum = cssNumberishToNumber(effectEnd);
-    if (
-      this.#effectivePlaybackRate > 0 &&
-      autoRewind &&
-      (currentTimeNum === null || currentTimeNum < 0 || (effectEndNum !== null && currentTimeNum >= effectEndNum))
-    ) {
-      seekTime = 0;
-    }
-    // condition 2
-    else if (
-      this.#effectivePlaybackRate < 0 &&
-      autoRewind &&
-      (currentTimeNum === null || currentTimeNum <= 0 || (effectEndNum !== null && currentTimeNum > effectEndNum))
-    ) {
-      if (effectEndNum === Infinity) {
-        throw new DOMException(
-          "Failed to execute 'play' on 'Animation': Cannot play reversed Animation with infinite target effect end.",
-          'InvalidStateError'
-        );
+    
+    if (isScrollDriven && hasFiniteTimeline && currentTime !== null) {
+      // For scroll-driven animations, we want to start at the current timeline position
+      // This ensures the animation is in "running" state and follows scroll position
+      seekTime = 0; // Set startTime to 0 so animation runs based on timeline currentTime
+    } else {
+      // Regular animation logic
+      const condition1 = this.#effectivePlaybackRate > 0 &&
+        autoRewind &&
+        (currentTimeNum === null || currentTimeNum < 0 || (effectEndNum !== null && currentTimeNum >= effectEndNum));
+      
+      if (condition1) {
+        seekTime = 0;
       }
+      // condition 2
+      else if (
+        this.#effectivePlaybackRate < 0 &&
+        autoRewind &&
+        (currentTimeNum === null || currentTimeNum <= 0 || (effectEndNum !== null && currentTimeNum > effectEndNum))
+      ) {
+        if (effectEndNum === Infinity) {
+          throw new DOMException(
+            "Failed to execute 'play' on 'Animation': Cannot play reversed Animation with infinite target effect end.",
+            'InvalidStateError'
+          );
+        }
 
-      seekTime = effectEndNum ?? 0;
-    }
-    // condition 3
-    else if (this.#effectivePlaybackRate === 0 && currentTime === null) {
-      seekTime = 0;
+        seekTime = effectEndNum ?? 0;
+      }
+      // condition 3
+      else if (this.#effectivePlaybackRate === 0 && currentTime === null) {
+        seekTime = 0;
+      }
     }
 
     // 6. If seek time is resolved,
@@ -809,7 +923,7 @@ class MockedAnimation extends EventTarget implements Animation {
       }
     }
 
-    // 7. If animation’s hold time is resolved, let its start time be unresolved.
+    // 7. If animation's hold time is resolved, let its start time be unresolved.
     if (this.#holdTime !== null) {
       this.startTime = null;
     }
@@ -823,17 +937,17 @@ class MockedAnimation extends EventTarget implements Animation {
 
     // 9. If the following four conditions are all satisfied:
     // If the following four conditions are all satisfied:
-    //   animation’s hold time is unresolved, and
+    //   animation's hold time is unresolved, and
     //   seek time is unresolved, and
     //   aborted pause is false, and
     //   animation does not have a pending playback rate,
     //     abort this procedure.
-    if (
-      this.#holdTime === null &&
+    const abortCondition = this.#holdTime === null &&
       seekTime === null &&
       !abortedPause &&
-      this.#pendingPlaybackRate === null
-    ) {
+      this.#pendingPlaybackRate === null;
+    
+    if (abortCondition) {
       return;
     }
 
@@ -852,11 +966,11 @@ class MockedAnimation extends EventTarget implements Animation {
       this.#iteration();
     });
 
-    queueMicrotask(() => {
+    smartQueueMicrotask(() => {
       this.#resolvers.ready.resolve(this);
     });
 
-    // 12. Run the procedure to update an animation’s finished state for animation with the did seek flag set to false, and the synchronously notify flag set to false.
+    // 12. Run the procedure to update an animation's finished state for animation with the did seek flag set to false, and the synchronously notify flag set to false.
     this.#updateFinishedState(false, false);
   }
 
@@ -983,10 +1097,10 @@ class MockedAnimation extends EventTarget implements Animation {
       this.#pauseTask();
     };
 
-    queueMicrotask(() => {
+    smartQueueMicrotask(() => {
       this.#pendingPauseTask?.();
 
-      // 11. Run the procedure to update an animation’s finished state for animation with the did seek flag set to false, and the synchronously notify flag set to false.
+      // 11. Run the procedure to update an animation's finished state for animation with the did seek flag set to false, and the synchronously notify flag set to false.
       this.#updateFinishedState(false, false);
     });
 
@@ -1041,7 +1155,7 @@ class MockedAnimation extends EventTarget implements Animation {
         this.#queuedFinishNotificationMicrotask = null;
       };
 
-      queueMicrotask(() => this.#queuedFinishNotificationMicrotask?.());
+      smartQueueMicrotask(() => this.#queuedFinishNotificationMicrotask?.());
     }
   }
 
@@ -1759,7 +1873,10 @@ class MockedAnimation extends EventTarget implements Animation {
       const valueAsString =
         typeof value === 'string' ? value : value.toString();
 
-      element.style.setProperty(property, valueAsString);
+      // Convert camelCase to kebab-case for CSS properties
+      const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
+      
+      element.style.setProperty(cssProperty, valueAsString);
     }
   }
 
@@ -1803,7 +1920,7 @@ class MockedAnimation extends EventTarget implements Animation {
     for (const keyframe of keyframes) {
       const distance = Math.abs(keyframe.computedOffset - currentProgress);
 
-      if (distance < smallestDistance) {
+      if (distance <= smallestDistance) {
         smallestDistance = distance;
         closestKeyframe = keyframe;
       }

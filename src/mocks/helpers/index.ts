@@ -1,2 +1,2 @@
 export * from './DOMRect';
-export * from './size';
+export * from './element';

@@ -1,5 +1,5 @@
 import { Writable, PartialDeep } from 'type-fest';
-import { mockDOMRect } from './size/DOMRect';
+import { mockDOMRect } from './helpers/DOMRect';
 import { getConfig } from '../tools';
 import { isJsdomEnv, WrongEnvironmentError } from '../helper';
 

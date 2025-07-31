@@ -10,6 +10,12 @@ const Nav = () => {
         <li>
           <a href="/animations/animate-presence">AnimatePresence</a>
         </li>
+        <li>
+          <a href="/animations/scroll-timeline">ScrollTimeline API</a>
+        </li>
+        <li>
+          <a href="/animations/view-timeline">ViewTimeline API</a>
+        </li>
       </ul>
     </nav>
   );
