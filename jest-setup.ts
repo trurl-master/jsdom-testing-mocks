@@ -65,35 +65,58 @@ function fn() {
 function createSmartSpy(realSpy: jest.SpyInstance): SmartSpy {
   return new Proxy(realSpy as object, {
     get(target, prop) {
-      // Only implement the methods we actually use
-      if (prop === 'mockImplementation') {
-        return (fn: () => void) => {
-          (target as jest.SpyInstance).mockImplementation(fn);
-          return createSmartSpy(target as jest.SpyInstance);
-        };
-      }
-      if (prop === 'toHaveBeenCalledWith') {
-        return (...args: unknown[]) => {
-          // Jest SpyInstance doesn't have toHaveBeenCalledWith as a method,
-          // it's available through expect(spy).toHaveBeenCalledWith()
-          // For compatibility, we'll check if the method exists and call it
-          const spy = target as Record<string, unknown>;
-          if (typeof spy.toHaveBeenCalledWith === 'function') {
-            return (
-              spy.toHaveBeenCalledWith as (...args: unknown[]) => unknown
-            )(...args);
-          }
-          return undefined;
-        };
-      }
-      if (prop === 'mockRestore') {
-        return () => {
-          (target as jest.SpyInstance).mockRestore();
-        };
-      }
+      // Switch on the specific methods we need to implement
+      switch (prop) {
+        case 'mockImplementation':
+          return (fn: () => void) => {
+            (target as jest.SpyInstance).mockImplementation(fn);
+            return createSmartSpy(target as jest.SpyInstance);
+          };
 
-      // For everything else, just pass through to the real spy
-      return (target as Record<string | symbol, unknown>)[prop];
+        case 'toHaveBeenCalledWith':
+          return (...args: unknown[]) => {
+            // Jest SpyInstance doesn't have toHaveBeenCalledWith as a method,
+            // but Vitest spies do. For compatibility, we implement it by checking
+            // the spy's call history manually to match Vitest's behavior.
+            const jestSpy = target as jest.SpyInstance;
+
+            // Check if any call matches the expected arguments
+            const calls = jestSpy.mock.calls;
+            const hasMatchingCall = calls.some((call: unknown[]) => {
+              if (call.length !== args.length) return false;
+              return call.every((arg: unknown, index: number) => {
+                // Use Jest's deep equality matching
+                try {
+                  expect(arg).toEqual(args[index]);
+                  return true;
+                } catch {
+                  return false;
+                }
+              });
+            });
+
+            if (!hasMatchingCall) {
+              throw new Error(
+                `Expected spy to have been called with [${args.map((arg: unknown) => JSON.stringify(arg)).join(', ')}], ` +
+                  `but it was called with: ${calls
+                    .map(
+                      (call: unknown[]) =>
+                        `[${call.map((arg: unknown) => JSON.stringify(arg)).join(', ')}]`
+                    )
+                    .join(', ')}`
+              );
+            }
+          };
+
+        case 'mockRestore':
+          return () => {
+            (target as jest.SpyInstance).mockRestore();
+          };
+
+        default:
+          // For everything else, just pass through to the real spy
+          return (target as Record<string | symbol, unknown>)[prop];
+      }
     },
   }) as SmartSpy;
 }
