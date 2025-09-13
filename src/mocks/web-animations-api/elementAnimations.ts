@@ -28,5 +28,12 @@ export function getAllAnimations() {
 }
 
 export function clearAnimations() {
+  // Cancel all running animations to prevent requestAnimationFrame errors during teardown
+  const allAnimations = getAllAnimations();
+  allAnimations.forEach((animation) => {
+    // Cancel the animation properly - this stops the requestAnimationFrame loop
+    animation.cancel();
+  });
+
   elementAnimations.clear();
 }
