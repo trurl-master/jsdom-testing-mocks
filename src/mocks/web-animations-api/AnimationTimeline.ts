@@ -5,7 +5,7 @@ class MockedAnimationTimeline implements AnimationTimeline {
     }
   }
 
-  get currentTime() {
+  get currentTime(): CSSNumberish | null {
     return performance.now();
   }
 }

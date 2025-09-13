@@ -4,6 +4,8 @@ import {
   getAllAnimations,
   clearAnimations,
 } from './elementAnimations';
+import { mockScrollTimeline } from './ScrollTimeline';
+import { mockViewTimeline } from './ViewTimeline';
 import { getConfig } from '../../tools';
 import { isJsdomEnv, WrongEnvironmentError } from '../../helper';
 
@@ -16,7 +18,10 @@ function animate(
 ) {
   const keyframeEffect = new KeyframeEffect(this, keyframes, options);
 
-  const animation = new Animation(keyframeEffect);
+  // Extract timeline from options if provided
+  const timeline = typeof options === 'object' && options.timeline ? options.timeline : document.timeline;
+  const animation = new Animation(keyframeEffect, timeline);
+  
   if (typeof options == 'object' && options.id) {
     animation.id = options.id;
   }
@@ -36,6 +41,8 @@ function mockAnimationsApi() {
   const savedGetAllAnimations = Document.prototype.getAnimations;
 
   mockAnimation();
+  mockScrollTimeline();
+  mockViewTimeline();
 
   Object.defineProperties(Element.prototype, {
     animate: {
@@ -67,4 +74,15 @@ function mockAnimationsApi() {
   });
 }
 
-export { mockAnimationsApi };
+function mockScrollTimelines() {
+  if (!isJsdomEnv()) {
+    throw new WrongEnvironmentError();
+  }
+
+  mockScrollTimeline();
+  mockViewTimeline();
+}
+
+export { mockAnimationsApi, mockScrollTimelines };
+export { MockedScrollTimeline, mockScrollTimeline } from './ScrollTimeline';
+export { MockedViewTimeline, mockViewTimeline } from './ViewTimeline';

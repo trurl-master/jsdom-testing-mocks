@@ -10,16 +10,28 @@ const AnimationsInView = () => {
       return;
     }
 
-    const stop = inView('.inview-section', (element) => {
-      const span = element.querySelector('span');
+    const sections = ref.current.querySelectorAll('.inview-section');
+    const cleanupFunctions: (() => void)[] = [];
 
-      if (span) {
-        animate(span, { opacity: 1, transform: 'none' }, { delay: 0.2, duration: 0.9 });
-      }
+    sections.forEach((section) => {
+      const span = section.querySelector('span');
+      if (!span) return;
+
+      const cleanup = inView(section, () => {
+        animate(
+          span, 
+          { opacity: 1, transform: 'translateX(0)' }, 
+          { delay: 0.2, duration: 0.9 }
+        );
+      }, {
+        amount: 0.25
+      });
+
+      cleanupFunctions.push(cleanup);
     });
 
     return () => {
-      stop();
+      cleanupFunctions.forEach(cleanup => cleanup());
     };
   }, []);
 

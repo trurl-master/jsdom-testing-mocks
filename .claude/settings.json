@@ -3,7 +3,12 @@
     "allow": [
       "Bash(npm run lint)",
       "Bash(npm run typecheck)",
-      "Bash(npm run test*)"
+      "Bash(npm install)",
+      "Bash(npm run test)",
+      "Bash(npm run test:jest)",
+      "Bash(npm run test:vi)",
+      "Bash(npm run test:swc)",
+      "Bash(npm run test:examples)"
     ],
     "deny": []
   }

@@ -16,6 +16,7 @@ export function cssNumberishToNumber(value: CSSNumberish | null): number | null 
     const { unit, value: raw } = value;
     if (unit === 's') return raw * 1000; // seconds to ms
     if (unit === 'ms' || unit === 'number') return raw;
+    if (unit === 'percent') return raw; // For scroll-driven animations, treat percentage as raw number
     console.warn(
       `jsdom-testing-mocks: Unsupported CSS unit '${unit}' in cssNumberishToNumber. Returning null.`
     );

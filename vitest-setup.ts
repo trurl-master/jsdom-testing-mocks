@@ -14,10 +14,12 @@ function useFakeTimers() {
       'cancelAnimationFrame',
     ],
   });
+  globalThis.runner.isFakeTimersActive = true;
 }
 
 function useRealTimers() {
   vi.useRealTimers();
+  globalThis.runner.isFakeTimersActive = false;
 }
 
 async function advanceTimersByTime(time: number) {
@@ -64,4 +66,5 @@ globalThis.runner = {
   advanceTimersByTime,
   fn,
   spyOn,
+  isFakeTimersActive: false,
 };

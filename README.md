@@ -19,8 +19,9 @@ A set of tools for emulating browser behavior in jsdom environment
 [matchMedia](#mock-viewport)  
 [Intersection Observer](#mock-intersectionobserver)  
 [Resize Observer](#mock-resizeobserver)  
-[Web Animations API](#mock-web-animations-api)  
-[CSS Typed OM](#mock-css-typed-om)
+[Web Animations API](#mock-web-animations-api) (includes ScrollTimeline and ViewTimeline)  
+[CSS Typed OM](#mock-css-typed-om)  
+[Scroll Methods](#scroll-methods) (scrollTo, scrollBy, scrollIntoView)
 
 ## Installation
 
@@ -42,10 +43,44 @@ To avoid having to wrap everything in `act` calls, you can pass `act` to `config
 import { configMocks } from 'jsdom-testing-mocks';
 import { act } from '...';
 
-configMocks({ act });
+configMocks({ 
+  act,
+  // Optional: Configure smooth scrolling behavior
+  smoothScrolling: {
+    enabled: false, // Enable/disable smooth scrolling (default: false for fast tests)
+    duration: 300,  // Animation duration in ms (default: 300)
+    steps: 10       // Number of animation frames (default: 10)
+  }
+});
 ```
 
 It can be done in a setup file, or in a test file, before rendering the component.
+
+### Configuration Options
+
+You can configure various aspects of the mocks using `configMocks()`:
+
+```javascript
+import { configMocks } from 'jsdom-testing-mocks';
+
+configMocks({
+  // Test lifecycle hooks (required for some testing frameworks)
+  beforeAll,
+  afterAll, 
+  beforeEach,
+  afterEach,
+  
+  // React integration - avoids wrapping everything in act() calls
+  act,
+  
+  // Scroll behavior configuration
+  smoothScrolling: {
+    enabled: false,  // Disable smooth scrolling for faster tests (default: false)
+    duration: 300,   // Animation duration when enabled (default: 300)
+    steps: 10        // Animation frame count when enabled (default: 10)
+  }
+});
+```
 
 ### With `vitest`
 
@@ -345,6 +380,44 @@ _Warning: **experimental**, bug reports, tests and feedback are greatly apprecia
 
 Mocks WAAPI functionality using `requestAnimationFrame`. With one important limitation — there are no style interpolations. Each frame applies the closest keyframe from list of passed keyframes or a generated "initial keyframe" if only one keyframe is passed (initial keyframe removes/restores all the properties set by the one keyframe passed). As the implementation is based on the [official spec](https://www.w3.org/TR/web-animations-1/) it should support the majority of cases, but the test suite is far from complete, so _here be dragons_
 
+### ScrollTimeline and ViewTimeline Support
+
+The mock includes complete implementations of **ScrollTimeline** and **ViewTimeline** for scroll-driven animations:
+
+- **ScrollTimeline** - Creates animations driven by scroll position of a container
+- **ViewTimeline** - Creates animations driven by an element's visibility in its scroll container
+
+```javascript
+import { mockAnimationsApi } from 'jsdom-testing-mocks';
+
+mockAnimationsApi();
+
+// ScrollTimeline example
+const container = document.querySelector('.scroll-container');
+const scrollTimeline = new ScrollTimeline({
+  source: container,
+  axis: 'block',
+  scrollOffsets: ['0%', '100%']
+});
+
+// ViewTimeline example  
+const subject = document.querySelector('.animated-element');
+const viewTimeline = new ViewTimeline({
+  subject: subject,
+  axis: 'block',
+  inset: ['0px', '0px']
+});
+
+// Use with Web Animations API
+subject.animate([
+  { opacity: 0, transform: 'scale(0.8)' },
+  { opacity: 1, transform: 'scale(1)' }
+], {
+  timeline: viewTimeline,
+  duration: 1000
+});
+```
+
 Example, using `React Testing Library`:
 
 ```jsx
@@ -441,6 +514,159 @@ it('enforces type safety', () => {
 ```
 
 Supports all CSS units (length, angle, time, frequency, resolution, flex, percentage), mathematical operations, and enforces type compatibility rules as defined in the [W3C specification](https://www.w3.org/TR/css-typed-om-1/).
+
+## Scroll Methods
+
+Provides native scroll method implementations (`scrollTo`, `scrollBy`, `scrollIntoView`) that properly update scroll properties and trigger scroll events. Essential for testing scroll-driven animations and scroll behavior.
+
+**Supports smooth scrolling behavior** - When `behavior: 'smooth'` is specified, the mock can animate the scroll over multiple frames using configurable settings, or treat it as immediate for faster tests.
+
+### Configuration Options
+
+```javascript
+import { mockScrollMethods, configMocks } from 'jsdom-testing-mocks';
+
+// Configure scroll behavior globally (call before using mockScrollMethods)
+configMocks({
+  smoothScrolling: {
+    enabled: false, // Enable/disable smooth scrolling animation (default: false)
+    duration: 300,  // Animation duration in ms (default: 300)  
+    steps: 10       // Number of animation frames (default: 10)
+  }
+});
+```
+
+**Configuration Options:**
+- `enabled: false` - (Default) Treats all scrolling as immediate, ignoring `behavior: 'smooth'` (fastest for tests)
+- `enabled: true` - Respects `behavior: 'smooth'` and animates over multiple frames
+- `duration` - How long the smooth scroll animation takes 
+- `steps` - How many intermediate positions to animate through
+
+### Usage Examples
+
+```javascript
+// Mock scroll methods for an element
+const element = document.createElement('div');
+const restore = mockScrollMethods(element);
+
+// Immediate scrolling (default behavior)
+element.scrollTo({ top: 100 });
+element.scrollBy(0, 50);
+
+// Smooth scrolling behavior depends on configuration:
+// - If enabled: false (default) -> immediate (ignores 'smooth')  
+// - If enabled: true -> animates over multiple frames
+element.scrollTo({ top: 200, behavior: 'smooth' });
+element.scrollBy({ top: 50, behavior: 'smooth' });
+element.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+// All scroll methods work with both element and window
+window.scrollTo({ top: 300, behavior: 'smooth' });
+
+// Scroll events are dispatched and ScrollTimelines/ViewTimelines are updated
+const scrollTimeline = new ScrollTimeline({ source: element });
+
+// Cleanup when done
+restore();
+```
+
+### Common Configurations
+
+```javascript
+// Default test configuration - all scrolling is immediate (default behavior)
+// No configuration needed, this is the default:
+// configMocks({ smoothScrolling: { enabled: false } });
+
+// Enable smooth scrolling for animation testing
+configMocks({
+  smoothScrolling: { enabled: true }  // Use default duration: 300, steps: 10
+});
+
+// Custom smooth scrolling - slow, high-fidelity animations  
+configMocks({
+  smoothScrolling: { 
+    enabled: true,
+    duration: 1000,  // 1 second animation
+    steps: 60        // 60 animation frames
+  }
+});
+```
+
+### Setup File Example
+
+Create a test setup file to configure mocks globally:
+
+```javascript
+// test-setup.js or setupTests.js
+import { configMocks } from 'jsdom-testing-mocks';
+import { act } from '@testing-library/react'; // or your testing framework
+
+configMocks({
+  act,
+  smoothScrolling: { 
+    enabled: false  // Fast tests - disable smooth scrolling
+  }
+});
+```
+
+Then import this in your test configuration (Jest, Vitest, etc.).
+
+
+## Testing Helpers
+
+Additional utilities for mocking element properties in tests:
+
+### Element Dimensions and Positioning
+
+**`mockElementBoundingClientRect(element, rect)`** - Mock `getBoundingClientRect()` return values for positioning and layout
+
+**`mockDOMRect()`** - Mock `DOMRect` and `DOMRectReadOnly` constructors
+
+### Element Size Properties
+
+**`mockElementClientProperties(element, props)`** - Mock visible area dimensions (`clientHeight`, `clientWidth`, `clientTop`, `clientLeft`)
+
+**`mockElementScrollProperties(element, props)`** - Mock scroll position and content dimensions (`scrollTop`, `scrollLeft`, `scrollHeight`, `scrollWidth`)
+
+### Scroll Testing
+
+**`mockScrollMethods(element)`** - Mock native scroll methods (`scrollTo`, `scrollBy`, `scrollIntoView`) for proper testing
+
+```javascript
+import { 
+  mockElementScrollProperties, 
+  mockElementClientProperties,
+  mockScrollMethods 
+} from 'jsdom-testing-mocks';
+
+const element = document.createElement('div');
+
+// Mock element dimensions
+mockElementClientProperties(element, {
+  clientHeight: 200,
+  clientWidth: 300
+});
+
+// Mock scroll properties
+mockElementScrollProperties(element, {
+  scrollTop: 100,
+  scrollHeight: 1000,
+  scrollWidth: 500
+});
+
+// Enable native scroll methods
+const restore = mockScrollMethods(element);
+
+// Use native scroll methods - they now work properly and trigger events
+element.scrollTo({ top: 250, behavior: 'smooth' });
+
+// Test scroll progress
+const progress = element.scrollTop / (element.scrollHeight - element.clientHeight);
+expect(progress).toBe(0.3125); // 31.25%
+
+// Cleanup when done
+restore();
+```
 
 ## Current issues
 
